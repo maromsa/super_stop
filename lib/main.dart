@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/emotion_selection_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(SuperStopApp());
