@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/emotion_selection_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'screens/impulse_control_game_screen.dart';
 
 void main() {
   runApp(SuperStopApp());
@@ -17,7 +17,7 @@ class SuperStopApp extends StatelessWidget {
       ),
       home: Directionality(
         textDirection: TextDirection.rtl,
-        child: EmotionSelectionScreen(),
+        child: ImpulseControlGameScreen(),
       ),
       debugShowCheckedModeBanner: false,
       locale: const Locale('he'),
