@@ -1,0 +1,38 @@
+name: Flutter CI with UI tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Flutter Pub Get
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run Unit Tests
+        run: flutter test
+
+      - name: Build APK (debug)
+        run: flutter build apk --debug
+
+      - name: Run Integration Tests
+        run: flutter test integration_test/
+

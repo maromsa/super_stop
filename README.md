@@ -1,16 +1,9 @@
-# super_stop
+# סופרסטופ - SuperStop
 
-A new Flutter project.
+אפליקציה לילדים עם ADHD שתעזור להם ללמוד לשלוט באימפולסיביות באמצעות משחקים ותרגילים.
 
-## Getting Started
+## איך להפעיל
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- פתח את הפרויקט ב־Flutter
+- הרץ `flutter pub get`
+- הפעל על אמולטור או מכשיר: `flutter run`
