@@ -1,34 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'screens/impulse_control_game_screen.dart';
+import 'screens/home_screen.dart'; // <--- הוסף את הייבוא הזה
 
 void main() {
-  runApp(SuperStopApp());
+  runApp(const MyApp());
 }
 
-class SuperStopApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'סופרסטופ',
+      title: 'Super Stop',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        fontFamily: 'Alef',
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: ImpulseControlGameScreen(),
-      ),
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('he'),
-      supportedLocales: const [
-        Locale('he'),
-      ],
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      // --- השינוי המרכזי נמצא כאן ---
+      home: const HomeScreen(), // במקום ImpulseControlGameScreen()
     );
   }
 }
