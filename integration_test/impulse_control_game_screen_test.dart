@@ -1,75 +1,252 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-// Make sure to import your app's main entry point and the screen
-import 'package:super_stop/main.dart' as app;
-import 'package:super_stop/screens/impulse_control_game_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'dart:developer' as developer;
 
-void main() {
-  // Ensure the integration test bindings are initialized
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+// ... (enum and Widget definition remain the same) ...
+enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate }
 
-  group('Impulse Control Game Screen Tests', () {
+class ImpulseControlGameScreen extends StatefulWidget {
+  const ImpulseControlGameScreen({super.key});
+  @override
+  State<ImpulseControlGameScreen> createState() => _ImpulseControlGameScreenState();
+}
 
-    testWidgets('Test Case 1: User clicks too early and sees failure message',
-            (WidgetTester tester) async {
-          // Start the app
-          app.main();
-          await tester.pumpAndSettle(); // Wait for app to load
+class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> with SingleTickerProviderStateMixin {
+  GameState _gameState = GameState.notStarted;
+  late AnimationController _animationController;
+  Timer? _reactionTimer;
+  Timer? _countdownTimer;
+  int _score = 0;
+  int _highScore = 0;
+  int _countdown = 3;
 
-          // For this test, let's assume you navigate to the game screen.
-          // If the game screen is the home screen, you can skip this part.
-          // Example of navigation:
-          // await tester.tap(find.text('Go to Impulse Game'));
-          // await tester.pumpAndSettle();
+  final AudioPlayer _sfxPlayer = AudioPlayer();
 
-          // Find the start button
-          final startButton = find.widgetWithText(ElevatedButton, 'התחל');
-          expect(startButton, findsOneWidget);
+  void _log(String message) {
+    final time = DateTime.now();
+    final logMessage = '[${time.hour}:${time.minute}:${time.second}.${time.millisecond}] $message';
+    developer.log(logMessage, name: 'GameLog');
+  }
 
-          // Tap the start button
-          await tester.tap(startButton);
-          await tester.pump(); // Let the state update to 'waiting'
+  // --- פונקציה משודרגת עם לכידת שגיאות ---
+  Future<void> _playSound(String soundFile) async {
+    _log('Attempting to play sound: $soundFile');
+    try {
+      // ReleaseMode.stop is good for short sound effects
+      await _sfxPlayer.setReleaseMode(ReleaseMode.stop);
+      await _sfxPlayer.play(AssetSource('sounds/$soundFile'));
+      _log('Successfully initiated playing $soundFile');
+    } catch (e) {
+      _log('!!! ERROR playing sound "$soundFile": $e');
+    }
+  }
 
-          // The button text should now be "...המתן..."
-          expect(find.text('...המתן...'), findsOneWidget);
+  @override
+  void initState() {
+    super.initState();
+    _log('--- initState: Screen Initialized ---');
+    _loadHighScore();
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    _animationController.addListener(() => setState(() {}));
+    _animationController.addStatusListener(_onAnimationStatusChanged);
+  }
 
-          // Tap immediately again (too early)
-          await tester.tap(find.widgetWithText(ElevatedButton, '...המתן...'));
-          await tester.pumpAndSettle(); // Wait for UI to update after the early tap
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _gameState == GameState.waiting) {
+      setState(() => _gameState = GameState.readyToPress);
+      final reactionMillis = max(500, 2000 - ((_score ~/ 3) * 150));
+      _reactionTimer = Timer(Duration(milliseconds: reactionMillis), () {
+        if (_gameState == GameState.readyToPress) {
+          _playSound('failure.mp3');
+          HapticFeedback.heavyImpact();
+          _checkAndSaveHighScore();
+          setState(() => _gameState = GameState.finishedTooLate);
+        }
+      });
+    }
+  }
 
-          // Check for the failure message
-          expect(find.text('עצור! לחצת מוקדם מדי, נסה שוב'), findsOneWidget);
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _reactionTimer?.cancel();
+    _countdownTimer?.cancel();
+    _sfxPlayer.dispose();
+    super.dispose();
+  }
 
-          // The button should now say "שחק שוב"
-          expect(find.widgetWithText(ElevatedButton, 'שחק שוב'), findsOneWidget);
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    setState(() {
+      _countdown = 3;
+      _gameState = GameState.gettingReady;
+    });
+    _playSound('tick.mp3');
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 1) {
+        setState(() => _countdown--);
+        _playSound('tick.mp3');
+      } else {
+        timer.cancel();
+        _startGame();
+      }
+    });
+  }
+
+  void _startGame() {
+    final waitSeconds = max(1.5, 5.0 - (_score * 0.15));
+    _animationController.duration = Duration(milliseconds: (waitSeconds * 1000).toInt());
+    setState(() => _gameState = GameState.waiting);
+    _animationController.reset();
+    _animationController.forward();
+  }
+
+  void _resetGame() {
+    _animationController.stop();
+    _reactionTimer?.cancel();
+    _countdownTimer?.cancel();
+    setState(() => _gameState = GameState.notStarted);
+  }
+
+  void _onButtonPressed() {
+    switch (_gameState) {
+      case GameState.notStarted:
+        _score = 0;
+        _startCountdown();
+        break;
+      case GameState.waiting:
+        _playSound('failure.mp3');
+        HapticFeedback.heavyImpact();
+        _animationController.stop();
+        _checkAndSaveHighScore();
+        setState(() => _gameState = GameState.finishedEarly);
+        break;
+      case GameState.readyToPress:
+        _playSound('success.mp3');
+        HapticFeedback.lightImpact();
+        _reactionTimer?.cancel();
+        setState(() {
+          _score++;
+          _gameState = GameState.finishedSuccess;
         });
+        Timer(const Duration(milliseconds: 1200), _startCountdown);
+        break;
+      case GameState.finishedEarly:
+      case GameState.finishedTooLate:
+        _resetGame();
+        break;
+      default:
+        break;
+    }
+  }
 
-    testWidgets('Test Case 2: User waits 5 seconds and sees success message',
-            (WidgetTester tester) async {
-          // Start the app
-          app.main();
-          await tester.pumpAndSettle();
+  Future<void> _loadHighScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _highScore = prefs.getInt('highScore') ?? 0);
+  }
 
-          // Find and tap the start button
-          final startButton = find.widgetWithText(ElevatedButton, 'התחל');
-          await tester.tap(startButton);
-          await tester.pump(); // Let state update
+  void _checkAndSaveHighScore() async {
+    if (_score > _highScore) {
+      setState(() => _highScore = _score);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('highScore', _highScore);
+    }
+  }
 
-          // Verify we are in the waiting state
-          expect(find.text('...המתן...'), findsOneWidget);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('שלב: ${_score + 1}  |  ניקוד: $_score  |  שיא: $_highScore'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: _buildGameContent(),
+      ),
+    );
+  }
 
-          // *** This is the crucial part ***
-          // We wait for 6 seconds, which is longer than the game's timer.
-          // This simulates a patient user.
-          await tester.pump(const Duration(seconds: 6));
+  Widget _buildGameContent() {
+    if (_gameState == GameState.gettingReady) {
+      return Text('$_countdown', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold));
+    }
+    final isWaiting = _gameState == GameState.waiting;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+          child: _getMessageText(),
+        ),
+        const SizedBox(height: 40),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 220,
+              height: 220,
+              child: CircularProgressIndicator(
+                value: isWaiting ? _animationController.value : 1.0,
+                strokeWidth: 12,
+                backgroundColor: Colors.grey.shade300,
+                valueColor: AlwaysStoppedAnimation<Color>(_getCircleColor()),
+              ),
+            ),
+            SizedBox(
+              width: 200,
+              height: 200,
+              child: ElevatedButton(
+                onPressed: _onButtonPressed,
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all<OutlinedBorder>(const CircleBorder()),
+                  backgroundColor: MaterialStateProperty.all<Color>(isWaiting ? Colors.grey.shade700 : _getCircleColor()),
+                ),
+                child: Text(_getButtonText(), style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
-          // After 6 seconds, the timer should have fired and updated the state.
-          // Check for the success message.
-          expect(find.text('כל הכבוד! הצלחת לעצור בזמן!'), findsOneWidget);
+  Color _getCircleColor() {
+    switch(_gameState) {
+      case GameState.readyToPress: return Colors.green;
+      case GameState.finishedTooLate:
+      case GameState.finishedEarly: return Colors.red;
+      case GameState.finishedSuccess: return Colors.amber;
+      default: return Colors.blue;
+    }
+  }
 
-          // The button should now say "שחק שוב"
-          expect(find.widgetWithText(ElevatedButton, 'שחק שוב'), findsOneWidget);
-        });
-  });
+  String _getButtonText() {
+    switch (_gameState) {
+      case GameState.notStarted: return 'שחק';
+      case GameState.waiting: return '...';
+      case GameState.readyToPress: return 'לחץ!';
+      case GameState.finishedSuccess: return '✔';
+      case GameState.finishedEarly:
+      case GameState.finishedTooLate: return 'שוב?';
+      case GameState.gettingReady: return '';
+    }
+  }
+
+  Widget _getMessageText() {
+    String text;
+    TextStyle? style = Theme.of(context).textTheme.displaySmall;
+    switch (_gameState) {
+      case GameState.finishedSuccess: text = '+1'; break;
+      case GameState.finishedEarly: text = 'מוקדם מדי!'; style = style?.copyWith(fontSize: 32); break;
+      case GameState.finishedTooLate: text = 'מאוחר מדי!'; style = style?.copyWith(fontSize: 32); break;
+      default: return const SizedBox.shrink();
+    }
+    return Text(text, key: ValueKey<String>(text), style: style?.copyWith(color: _getCircleColor()), textAlign: TextAlign.center);
+  }
 }
