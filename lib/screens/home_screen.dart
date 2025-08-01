@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'impulse_control_game_screen.dart';
+import 'impulse_control_game_screen.dart'; // Make sure this import is correct
+import 'settings_screen.dart';             // Make sure this import is correct
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // כותרת ראשית של המסך
             const Text(
               'שפרו את האיפוק שלכם',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
@@ -23,7 +23,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 60),
 
-            // כפתור "שחק" גדול
+            // --- כפתור "שחק" ---
             SizedBox(
               width: 200,
               height: 80,
@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 32),
                 ),
                 onPressed: () {
-                  // ניווט למסך המשחק כאשר לוחצים
+                  // The "Play" button should navigate to the GAME screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const ImpulseControlGameScreen()),
@@ -49,15 +49,15 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // כפתור "הגדרות" קטן יותר
+            // --- כפתור "הגדרות" ---
             TextButton.icon(
               icon: const Icon(Icons.settings),
               label: const Text('הגדרות'),
               onPressed: () {
-                // TODO: בעתיד נוביל למסך הגדרות אמיתי
-                // כרגע, אפשר להציג הודעה זמנית
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('מסך הגדרות יבנה בקרוב!')),
+                // The "Settings" button should navigate to the SETTINGS screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 );
               },
             ),

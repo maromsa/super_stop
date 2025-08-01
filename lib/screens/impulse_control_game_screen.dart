@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:developer' as developer;
+import 'settings_screen.dart';
 
 enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate }
 
@@ -23,6 +24,9 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   int _highScore = 0;
   int _countdown = 3;
 
+  bool _soundEnabled = true;
+  bool _hapticsEnabled = true;
+
   final AudioPlayer _sfxPlayer = AudioPlayer();
 
   void _log(String message) {
@@ -32,6 +36,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   }
 
   Future<void> _playSound(String soundFile) async {
+    if (!_soundEnabled) return;
+
     try {
       await _sfxPlayer.play(AssetSource('sounds/$soundFile'));
     } catch (e) {
@@ -42,6 +48,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     _loadHighScore();
 
     AudioCache.instance.loadAll([
@@ -55,6 +62,16 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     _animationController.addStatusListener(_onAnimationStatusChanged);
   }
 
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _soundEnabled = prefs.getBool(SettingsScreen.kSoundEnabled) ?? true;
+        _hapticsEnabled = prefs.getBool(SettingsScreen.kHapticsEnabled) ?? true;
+      });
+    }
+  }
+
   void _onAnimationStatusChanged(AnimationStatus status) {
     if (status == AnimationStatus.completed && _gameState == GameState.waiting) {
       setState(() => _gameState = GameState.readyToPress);
@@ -62,7 +79,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       _reactionTimer = Timer(Duration(milliseconds: reactionMillis), () {
         if (_gameState == GameState.readyToPress) {
           _playSound('failure.mp3');
-          HapticFeedback.heavyImpact();
+          if (_hapticsEnabled) HapticFeedback.heavyImpact();
           _checkAndSaveHighScore();
           setState(() => _gameState = GameState.finishedTooLate);
         }
@@ -121,14 +138,14 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
         break;
       case GameState.waiting:
         _playSound('failure.mp3');
-        HapticFeedback.heavyImpact();
+        if (_hapticsEnabled) HapticFeedback.heavyImpact();
         _animationController.stop();
         _checkAndSaveHighScore();
         setState(() => _gameState = GameState.finishedEarly);
         break;
       case GameState.readyToPress:
         _playSound('success.mp3');
-        HapticFeedback.lightImpact();
+        if (_hapticsEnabled) HapticFeedback.lightImpact();
         _reactionTimer?.cancel();
         setState(() {
           _score++;
