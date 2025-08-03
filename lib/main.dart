@@ -3,10 +3,16 @@ import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'services/achievement_service.dart';
 import 'theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// Removed the flutter_gen import
 
-void main() {
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool hasSeenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+
   runApp(
     MultiProvider(
       providers: [
