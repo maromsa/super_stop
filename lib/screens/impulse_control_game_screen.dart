@@ -2,20 +2,31 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:developer' as developer;
 import 'settings_screen.dart';
+import '../services/achievement_service.dart';
+import 'package:confetti/confetti.dart';
 
-enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate }
+enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate, gameOver }
+enum GameMode { classic, survival }
 
 class ImpulseControlGameScreen extends StatefulWidget {
-  const ImpulseControlGameScreen({super.key});
+  final GameMode mode;
+
+  const ImpulseControlGameScreen({super.key, required this.mode});
+
+  // --- New: Unique key for saving score history ---
+  static const String kScoreHistory = 'impulse_score_history';
+
   @override
   State<ImpulseControlGameScreen> createState() => _ImpulseControlGameScreenState();
 }
 
 class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> with SingleTickerProviderStateMixin {
+  // ... (All existing state variables remain the same)
   GameState _gameState = GameState.notStarted;
   late AnimationController _animationController;
   Timer? _reactionTimer;
@@ -23,11 +34,135 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   int _score = 0;
   int _highScore = 0;
   int _countdown = 3;
-
   bool _soundEnabled = true;
   bool _hapticsEnabled = true;
-
   final AudioPlayer _sfxPlayer = AudioPlayer();
+  late AchievementService _achievementService;
+  late ConfettiController _confettiController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _achievementService = Provider.of<AchievementService>(context, listen: false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+    _loadHighScore();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _achievementService.markGamePlayed('impulse');
+    });
+
+    AudioCache.instance.loadAll(['sounds/tick.mp3', 'sounds/success.mp3', 'sounds/failure.mp3']);
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    _animationController.addListener(() => setState(() {}));
+    _animationController.addStatusListener(_onAnimationStatusChanged);
+  }
+
+  // --- New: Method to save the score to a list ---
+  Future<void> _saveScoreToHistory() async {
+    if (_score == 0) return; // Don't save zero scores
+    final prefs = await SharedPreferences.getInstance();
+
+    // Fetch the existing list, or create a new one
+    final history = prefs.getStringList(ImpulseControlGameScreen.kScoreHistory) ?? [];
+
+    // Add the new score
+    history.add(_score.toString());
+
+    // Keep the list at a max of 20 entries
+    if (history.length > 20) {
+      history.removeAt(0);
+    }
+
+    // Save the updated list
+    await prefs.setStringList(ImpulseControlGameScreen.kScoreHistory, history);
+    developer.log('Impulse game score history saved: $history');
+  }
+
+  void _handleGameOver() {
+    _checkAndSaveHighScore();
+    _saveScoreToHistory(); // Save score to history on game over
+    // --- New: Logic to handle different modes ---
+    if (widget.mode == GameMode.survival) {
+      setState(() => _gameState = GameState.gameOver);
+    }
+  }
+
+  void _onButtonPressed() {
+    switch (_gameState) {
+    // ... (success case is the same)
+      case GameState.waiting:
+        _playSound('failure.mp3');
+        if (_hapticsEnabled) HapticFeedback.heavyImpact();
+        _animationController.stop();
+        _handleGameOver(); // <-- Call the new game over handler
+        setState(() => _gameState = GameState.finishedEarly);
+        break;
+      case GameState.gameOver:
+        Navigator.of(context).pop();
+        break;
+
+    // ... (other cases are the same)
+      case GameState.readyToPress:
+        _playSound('success.mp3');
+        if (_hapticsEnabled) HapticFeedback.lightImpact();
+        _reactionTimer?.cancel();
+
+        setState(() {
+          _score++;
+          _gameState = GameState.finishedSuccess;
+        });
+
+        if (_score == 10) {
+          _achievementService.unlockAchievement('impulse_score_10');
+        }
+
+        Timer(const Duration(milliseconds: 1200), _startCountdown);
+        break;
+
+      case GameState.notStarted:
+        _score = 0;
+        _startCountdown();
+        break;
+      case GameState.finishedEarly:
+      case GameState.finishedTooLate:
+        _resetGame();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _gameState == GameState.waiting) {
+      setState(() => _gameState = GameState.readyToPress);
+      final reactionMillis = max(500, 2000 - ((_score ~/ 3) * 150));
+      _reactionTimer = Timer(Duration(milliseconds: reactionMillis), () {
+        if (_gameState == GameState.readyToPress) {
+          _playSound('failure.mp3');
+          if (_hapticsEnabled) HapticFeedback.heavyImpact();
+          _handleGameOver(); // <-- Call the new game over handler
+          setState(() => _gameState = GameState.finishedTooLate);
+        }
+      });
+    }
+  }
+
+  // --- The rest of the file is unchanged ---
+  void _checkAndSaveHighScore() async {
+    if (_score > _highScore) {
+      _achievementService.unlockAchievement('new_high_score');
+      _confettiController.play();
+      setState(() => _highScore = _score);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('impulse_high_score', _highScore);
+    }
+  }
 
   void _log(String message) {
     final time = DateTime.now();
@@ -37,29 +172,11 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
 
   Future<void> _playSound(String soundFile) async {
     if (!_soundEnabled) return;
-
     try {
       await _sfxPlayer.play(AssetSource('sounds/$soundFile'));
     } catch (e) {
       _log('!!! ERROR playing sound "$soundFile": $e');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-    _loadHighScore();
-
-    AudioCache.instance.loadAll([
-      'sounds/tick.mp3',
-      'sounds/success.mp3',
-      'sounds/failure.mp3',
-    ]);
-
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 5));
-    _animationController.addListener(() => setState(() {}));
-    _animationController.addStatusListener(_onAnimationStatusChanged);
   }
 
   Future<void> _loadSettings() async {
@@ -72,27 +189,14 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     }
   }
 
-  void _onAnimationStatusChanged(AnimationStatus status) {
-    if (status == AnimationStatus.completed && _gameState == GameState.waiting) {
-      setState(() => _gameState = GameState.readyToPress);
-      final reactionMillis = max(500, 2000 - ((_score ~/ 3) * 150));
-      _reactionTimer = Timer(Duration(milliseconds: reactionMillis), () {
-        if (_gameState == GameState.readyToPress) {
-          _playSound('failure.mp3');
-          if (_hapticsEnabled) HapticFeedback.heavyImpact();
-          _checkAndSaveHighScore();
-          setState(() => _gameState = GameState.finishedTooLate);
-        }
-      });
-    }
-  }
-
   @override
   void dispose() {
     _animationController.dispose();
     _reactionTimer?.cancel();
     _countdownTimer?.cancel();
     _sfxPlayer.dispose();
+    _confettiController.dispose();
+
     super.dispose();
   }
 
@@ -130,49 +234,9 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     setState(() => _gameState = GameState.notStarted);
   }
 
-  void _onButtonPressed() {
-    switch (_gameState) {
-      case GameState.notStarted:
-        _score = 0;
-        _startCountdown();
-        break;
-      case GameState.waiting:
-        _playSound('failure.mp3');
-        if (_hapticsEnabled) HapticFeedback.heavyImpact();
-        _animationController.stop();
-        _checkAndSaveHighScore();
-        setState(() => _gameState = GameState.finishedEarly);
-        break;
-      case GameState.readyToPress:
-        _playSound('success.mp3');
-        if (_hapticsEnabled) HapticFeedback.lightImpact();
-        _reactionTimer?.cancel();
-        setState(() {
-          _score++;
-          _gameState = GameState.finishedSuccess;
-        });
-        Timer(const Duration(milliseconds: 1200), _startCountdown);
-        break;
-      case GameState.finishedEarly:
-      case GameState.finishedTooLate:
-        _resetGame();
-        break;
-      default:
-        break;
-    }
-  }
-
   Future<void> _loadHighScore() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) setState(() => _highScore = prefs.getInt('highScore') ?? 0);
-  }
-
-  void _checkAndSaveHighScore() async {
-    if (_score > _highScore) {
-      setState(() => _highScore = _score);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('highScore', _highScore);
-    }
+    if (mounted) setState(() => _highScore = prefs.getInt('impulse_high_score') ?? 0);
   }
 
   @override
@@ -182,8 +246,21 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
         title: Text('שלב: ${_score + 1}  |  ניקוד: $_score  |  שיא: $_highScore'),
         centerTitle: true,
       ),
-      body: Center(
-        child: _buildGameContent(),
+      body: Stack( // <-- New: Use a Stack to layer confetti on top
+        alignment: Alignment.topCenter,
+        children: [
+          // This is our original game content
+          Center(
+            child: _buildGameContent(),
+          ),
+          // --- New: The confetti widget itself ---
+          ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+          ),
+        ],
       ),
     );
   }
@@ -191,6 +268,22 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   Widget _buildGameContent() {
     if (_gameState == GameState.gettingReady) {
       return Text('$_countdown', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold));
+    }
+    if (_gameState == GameState.gameOver) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.gamepad, size: 80, color: Colors.red),
+          const SizedBox(height: 20),
+          const Text('Game Over', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+          Text('Final Score: $_score', style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Return Home'),
+          )
+        ],
+      );
     }
     final isWaiting = _gameState == GameState.waiting;
     return Column(
@@ -252,6 +345,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       case GameState.finishedEarly:
       case GameState.finishedTooLate: return 'שוב?';
       case GameState.gettingReady: return '';
+      case GameState.gameOver: return 'Home';
     }
   }
 

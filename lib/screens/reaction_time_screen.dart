@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'settings_screen.dart';
+import '../services/achievement_service.dart';
+import 'package:confetti/confetti.dart'; // <-- New import
 
-// Enum to manage the different states of the reaction game
-enum ReactionState {
-  waitingToStart,
-  waitingForGreen,
-  readyToTap,
-  finished,
-  tooEarly
-}
+enum ReactionState { waitingToStart, waitingForGreen, readyToTap, finished, tooEarly, testFinished }
+enum ReactionMode { classic, fiveRoundTest }
 
 class ReactionTimeScreen extends StatefulWidget {
-  const ReactionTimeScreen({super.key});
-
+  final ReactionMode mode;
+  const ReactionTimeScreen({super.key, required this.mode});
+  static const String kHighScore = 'reaction_high_score';
   @override
   State<ReactionTimeScreen> createState() => _ReactionTimeScreenState();
 }
@@ -22,43 +24,148 @@ class _ReactionTimeScreenState extends State<ReactionTimeScreen> {
   ReactionState _state = ReactionState.waitingToStart;
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
-  int _resultMilliseconds = 0;
+  int _lastResult = 0;
+  List<int> _recentScores = [];
+  int _averageScore = 0;
+  int _highScore = 0;
+  bool _soundEnabled = true;
+  bool _hapticsEnabled = true;
+  late AchievementService _achievementService;
+  late ConfettiController _confettiController;
+  int _round = 1;
 
-  // Handles all tap events on the screen
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _achievementService = Provider.of<AchievementService>(context, listen: false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+    _loadHighScore();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
+
+    // --- Mark game as played for "Trifecta" ---
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _achievementService.markGamePlayed('reaction');
+    });
+  }
+
+  void _updateScores(int newScore) {
+    _recentScores.add(newScore);
+    if (_recentScores.length > 5) {
+      _recentScores.removeAt(0);
+    }
+    if (_recentScores.isNotEmpty) {
+      _averageScore = _recentScores.reduce((a, b) => a + b) ~/ _recentScores.length;
+    }
+
+    // --- New: Check for achievements ---
+    if (newScore < 250) {
+      _achievementService.unlockAchievement('reaction_time_250');
+    }
+
+    if (newScore < _highScore || _highScore == 0) {
+      _achievementService.unlockAchievement('new_high_score');
+      _highScore = newScore;
+      _confettiController.play();
+      _saveHighScore(newScore);
+    }
+  }
+
   void _onTapScreen() {
     setState(() {
       switch (_state) {
+      // ... (other cases are mostly the same)
+        case ReactionState.readyToTap:
+          _playSound('success.mp3');
+          if (_hapticsEnabled) HapticFeedback.lightImpact();
+          _stopwatch.stop();
+          _lastResult = _stopwatch.elapsedMilliseconds;
+          _updateScores(_lastResult); // Logic is now in this method
+          _state = ReactionState.finished;
+          break;
         case ReactionState.waitingToStart:
-        // Start the waiting process
-          _state = ReactionState.waitingForGreen;
-          _startWaitTimer();
+          _startNewGameSession();
           break;
         case ReactionState.waitingForGreen:
-        // User tapped before the screen turned green
+          _playSound('failure.mp3');
+          if (_hapticsEnabled) HapticFeedback.heavyImpact();
           _timer?.cancel();
           _state = ReactionState.tooEarly;
           break;
-        case ReactionState.readyToTap:
-        // User tapped successfully
-          _stopwatch.stop();
-          _resultMilliseconds = _stopwatch.elapsedMilliseconds;
-          _state = ReactionState.finished;
-          break;
         case ReactionState.finished:
+        // --- New: Logic for different modes ---
+          if (widget.mode == ReactionMode.fiveRoundTest && _round >= 5) {
+            _state = ReactionState.testFinished;
+          } else {
+            _round++;
+            _playSound('tick.mp3');
+            _state = ReactionState.waitingForGreen;
+            _startWaitTimer();
+          }
+          break;
         case ReactionState.tooEarly:
-        // Tap to reset the game
+          if (widget.mode == ReactionMode.fiveRoundTest) {
+            // In test mode, an early tap resets the whole test
+            _state = ReactionState.waitingToStart;
+          } else {
+            // In classic mode, it just starts the next round
+            _playSound('tick.mp3');
+            _state = ReactionState.waitingForGreen;
+            _startWaitTimer();
+          }
+          break;
+        case ReactionState.testFinished:
           _state = ReactionState.waitingToStart;
           break;
       }
     });
   }
 
-  // Starts a timer for a random duration
+  void _startNewGameSession() {
+    _playSound('tick.mp3');
+    _recentScores = [];
+    _averageScore = 0;
+    _round = 1;
+    _state = ReactionState.waitingForGreen;
+    _startWaitTimer();
+  }
+
+
+  void _playSound(String soundFile) {
+    if (!_soundEnabled) return;
+    AudioPlayer().play(AssetSource('sounds/$soundFile'));
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _soundEnabled = prefs.getBool(SettingsScreen.kSoundEnabled) ?? true;
+        _hapticsEnabled = prefs.getBool(SettingsScreen.kHapticsEnabled) ?? true;
+      });
+    }
+  }
+
+  Future<void> _loadHighScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _highScore = prefs.getInt(ReactionTimeScreen.kHighScore) ?? 0;
+    });
+  }
+
+  Future<void> _saveHighScore(int newHighScore) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(ReactionTimeScreen.kHighScore, newHighScore);
+  }
+
   void _startWaitTimer() {
-    // Generate a random wait time between 2 and 6 seconds
-    final randomWaitTime = Random().nextInt(4000) + 2000; // 2000ms to 6000ms
+    final randomWaitTime = Random().nextInt(4000) + 2000;
     _timer = Timer(Duration(milliseconds: randomWaitTime), () {
-      // When the timer fires, change the state and start the stopwatch
+      if (!mounted) return;
       setState(() {
         _state = ReactionState.readyToTap;
         _stopwatch.reset();
@@ -71,83 +178,88 @@ class _ReactionTimeScreenState extends State<ReactionTimeScreen> {
   void dispose() {
     _timer?.cancel();
     _stopwatch.stop();
+    _confettiController.dispose();
+
     super.dispose();
   }
 
-  // Helper to get the screen color based on the state
   Color _getBackgroundColor() {
     switch (_state) {
-      case ReactionState.readyToTap:
-        return Colors.green;
-      case ReactionState.tooEarly:
-        return Colors.red;
-      default:
-        return Colors.blueGrey;
+      case ReactionState.readyToTap: return Colors.green;
+      case ReactionState.tooEarly: return Colors.red;
+      default: return Colors.blueGrey;
     }
   }
 
-  // Helper to get the content (icon and text) for the screen
   Widget _buildContent() {
     switch (_state) {
       case ReactionState.waitingToStart:
-        return const _GameMessage(
-          icon: Icons.touch_app,
-          title: 'מבחן זמן תגובה',
-          subtitle: 'לחץ כדי להתחיל',
-        );
+        return const _GameMessage(icon: Icons.touch_app, title: 'מבחן זמן תגובה', subtitle: 'לחץ כדי להתחיל');
       case ReactionState.waitingForGreen:
-        return const _GameMessage(
-          icon: Icons.hourglass_bottom,
-          title: 'המתן לירוק',
-          subtitle: 'אל תלחץ עדיין...',
-        );
+        return const _GameMessage(icon: Icons.hourglass_bottom, title: 'המתן לירוק', subtitle: '');
       case ReactionState.readyToTap:
-        return const _GameMessage(
-          icon: Icons.touch_app,
-          title: 'לחץ עכשיו!',
-          subtitle: '',
-        );
+        return const _GameMessage(icon: Icons.touch_app, title: 'לחץ עכשיו!', subtitle: '');
       case ReactionState.tooEarly:
-        return const _GameMessage(
-          icon: Icons.warning,
-          title: 'מוקדם מדי!',
-          subtitle: 'לחץ כדי לנסות שוב',
-        );
+        return const _GameMessage(icon: Icons.warning, title: 'מוקדם מדי!', subtitle: 'לחץ כדי לנסות שוב');
       case ReactionState.finished:
-        return _GameMessage(
-          icon: Icons.bolt,
-          title: '$_resultMilliseconds ms',
-          subtitle: 'לחץ כדי לשחק שוב',
-        );
+        return _GameMessage(icon: Icons.bolt, title: '$_lastResult ms', subtitle: 'לחץ לסיבוב הבא');
+      case ReactionState.testFinished:
+        return _buildTestFinishedView();
     }
+  }
+
+  Widget _buildTestFinishedView() {
+    final best = _recentScores.reduce(min);
+    final worst = _recentScores.reduce(max);
+    final avg = _averageScore;
+
+    return _GameMessage(
+      icon: Icons.checklist,
+      title: 'Test Complete!',
+      subtitle: 'Best: $best ms\nWorst: $worst ms\nAverage: $avg ms\n\nTap to play again',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final highScoreText = _highScore == 0 ? '--' : '$_highScore ms';
+    final averageScoreText = _averageScore == 0 && _recentScores.isEmpty ? '--' : '$_averageScore ms';
+
     return GestureDetector(
       onTap: _onTapScreen,
       child: Scaffold(
+        appBar: AppBar(
+          title: Text('שיא: $highScoreText  |  ממוצע (5): $averageScoreText'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
         backgroundColor: _getBackgroundColor(),
-        body: Center(
-          child: _buildContent(),
+        body: Stack( // <-- New: Use a Stack to layer confetti on top
+          alignment: Alignment.topCenter,
+          children: [
+            // This is our original game content
+            Center(
+              child: _buildContent(),
+            ),
+            // --- New: The confetti widget itself ---
+            ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// A simple helper widget for displaying the game messages
 class _GameMessage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-
-  const _GameMessage({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
+  const _GameMessage({required this.icon, required this.title, required this.subtitle});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -157,11 +269,7 @@ class _GameMessage extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         if (subtitle.isNotEmpty)
           Text(

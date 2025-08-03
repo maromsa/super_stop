@@ -1,0 +1,16 @@
+{
+    "@@locale": "he",
+    "playButton": "שחק",
+    "settingsButton": "הגדרות",
+    "achievementsButton": "הישגים",
+    "achievementZenBeginnerTitle": "זן למתחילים",
+    "achievementZenBeginnerDesc": "השג ניקוד 10 במשחק האיפוק.",
+    "achievementLightningFastTitle": "מהיר כברק",
+    "achievementLightningFastDesc": "השג זמן תגובה של פחות מ-250ms.",
+    "achievementFocusedMindTitle": "ריכוז שיא",
+    "achievementFocusedMindDesc": "ענה נכון 20 פעמים במבחן סטרופ.",
+    "achievementTrifectaTitle": "אלוף השלישייה",
+    "achievementTrifectaDesc": "שחק בכל שלושת המשחקים.",
+    "achievementRecordBreakerTitle": "שובר שיאים",
+    "achievementRecordBreakerDesc": "קבע שיא חדש בכל משחק שהוא."
+}

@@ -1,0 +1,16 @@
+{
+    "@@locale": "en",
+    "playButton": "Play",
+    "settingsButton": "Settings",
+    "achievementsButton": "Achievements",
+    "achievementZenBeginnerTitle": "Zen Beginner",
+    "achievementZenBeginnerDesc": "Reach a score of 10 in the Impulse Control game.",
+    "achievementLightningFastTitle": "Lightning Fast",
+    "achievementLightningFastDesc": "Get a reaction time under 250ms.",
+    "achievementFocusedMindTitle": "Focused Mind",
+    "achievementFocusedMindDesc": "Get 20 correct answers in the Stroop Test.",
+    "achievementTrifectaTitle": "Trifecta",
+    "achievementTrifectaDesc": "Play all three games at least once.",
+    "achievementRecordBreakerTitle": "Record Breaker",
+    "achievementRecordBreakerDesc": "Set a new high score in any game."
+}
