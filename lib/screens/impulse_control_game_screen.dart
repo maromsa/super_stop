@@ -39,6 +39,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   final AudioPlayer _sfxPlayer = AudioPlayer();
   late AchievementService _achievementService;
   late ConfettiController _confettiController;
+  int _combo = 1;
 
   @override
   void didChangeDependencies() {
@@ -88,6 +89,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     _checkAndSaveHighScore();
     _saveScoreToHistory(); // Save score to history on game over
     // --- New: Logic to handle different modes ---
+    _combo = 1;
     if (widget.mode == GameMode.survival) {
       setState(() => _gameState = GameState.gameOver);
     }
@@ -114,7 +116,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
         _reactionTimer?.cancel();
 
         setState(() {
-          _score++;
+          _score += _combo;
+          _combo++;
           _gameState = GameState.finishedSuccess;
         });
 
@@ -127,6 +130,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
 
       case GameState.notStarted:
         _score = 0;
+        _combo = 1;
         _startCountdown();
         break;
       case GameState.finishedEarly:
@@ -273,6 +277,14 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+            child: _combo > 1
+                ? Text('x$_combo COMBO!', key: ValueKey<int>(_combo), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber))
+                : SizedBox(key: const ValueKey<int>(0), height: 34), // Placeholder for alignment
+          ),
+          const SizedBox(height: 10),
           const Icon(Icons.gamepad, size: 80, color: Colors.red),
           const SizedBox(height: 20),
           const Text('Game Over', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
