@@ -10,9 +10,15 @@ import 'settings_screen.dart';
 import '../services/achievement_service.dart';
 import 'package:confetti/confetti.dart';
 
+enum PowerUpType { shield }
+class PowerUp {
+  final PowerUpType type;
+  final Alignment alignment;
+  PowerUp({required this.type, required this.alignment});
+}
+
 enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate, gameOver }
 enum GameMode { classic, survival }
-
 class ImpulseControlGameScreen extends StatefulWidget {
   final GameMode mode;
 
@@ -40,6 +46,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   late AchievementService _achievementService;
   late ConfettiController _confettiController;
   int _combo = 1;
+  PowerUp? _powerUpOnScreen;
+  bool _isShieldActive = false;
 
   @override
   void didChangeDependencies() {
@@ -62,6 +70,58 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 5));
     _animationController.addListener(() => setState(() {}));
     _animationController.addStatusListener(_onAnimationStatusChanged);
+  }
+
+  void _spawnPowerUp() {
+    // 25% chance to spawn a power-up if one isn't already on screen
+    if (_powerUpOnScreen == null && Random().nextInt(4) == 0) {
+      final random = Random();
+      // Generate a random position on the screen
+      final alignment = Alignment(
+        random.nextDouble() * 1.6 - 0.8, // x from -0.8 to 0.8
+        random.nextDouble() * 1.6 - 0.8, // y from -0.8 to 0.8
+      );
+      setState(() {
+        _powerUpOnScreen = PowerUp(type: PowerUpType.shield, alignment: alignment);
+      });
+    }
+  }
+
+  // --- New: Logic to collect a power-up ---
+  void _collectPowerUp() {
+    if (_powerUpOnScreen?.type == PowerUpType.shield) {
+      setState(() {
+        _isShieldActive = true;
+      });
+    }
+    setState(() {
+      _powerUpOnScreen = null;
+    });
+  }
+
+  void _handleFailure() {
+    if (_isShieldActive) {
+      setState(() {
+        _isShieldActive = false;
+        _combo = 1;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('המגן הגן עליך!'), duration: Duration(seconds: 1), backgroundColor: Colors.blue)
+      );
+      Timer(const Duration(milliseconds: 1200), _startCountdown);
+    } else {
+      _playSound('failure.mp3');
+      if (_hapticsEnabled) HapticFeedback.heavyImpact();
+      _animationController.stop();
+      _checkAndSaveHighScore();
+      _saveScoreToHistory();
+      setState(() {
+        _combo = 1;
+        if (widget.mode == GameMode.survival) {
+          _gameState = GameState.gameOver;
+        }
+      });
+    }
   }
 
   // --- New: Method to save the score to a list ---
@@ -99,11 +159,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     switch (_gameState) {
     // ... (success case is the same)
       case GameState.waiting:
-        _playSound('failure.mp3');
-        if (_hapticsEnabled) HapticFeedback.heavyImpact();
-        _animationController.stop();
-        _handleGameOver(); // <-- Call the new game over handler
-        setState(() => _gameState = GameState.finishedEarly);
+        _handleFailure();
+        if (!_isShieldActive) setState(() => _gameState = GameState.finishedEarly);
         break;
       case GameState.gameOver:
         Navigator.of(context).pop();
@@ -111,7 +168,10 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
 
     // ... (other cases are the same)
       case GameState.readyToPress:
-        _playSound('success.mp3');
+        _handleFailure();
+        if (!_isShieldActive) {
+          setState(() => _gameState = GameState.finishedTooLate);
+        }
         if (_hapticsEnabled) HapticFeedback.lightImpact();
         _reactionTimer?.cancel();
 
@@ -121,9 +181,9 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
           _gameState = GameState.finishedSuccess;
         });
 
-        if (_score == 10) {
-          _achievementService.unlockAchievement('impulse_score_10');
-        }
+        if (_score >= 10) _achievementService.unlockAchievement('impulse_score_10');
+
+        _spawnPowerUp();
 
         Timer(const Duration(milliseconds: 1200), _startCountdown);
         break;
@@ -131,6 +191,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       case GameState.notStarted:
         _score = 0;
         _combo = 1;
+        _isShieldActive = false;
+        _powerUpOnScreen = null;
         _startCountdown();
         break;
       case GameState.finishedEarly:
@@ -249,6 +311,13 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       appBar: AppBar(
         title: Text('שלב: ${_score + 1}  |  ניקוד: $_score  |  שיא: $_highScore'),
         centerTitle: true,
+        actions: [
+          if (_isShieldActive)
+            const Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: Icon(Icons.shield, color: Colors.blue, size: 30),
+            ),
+        ],
       ),
       body: Stack( // <-- New: Use a Stack to layer confetti on top
         alignment: Alignment.topCenter,
@@ -257,6 +326,21 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
           Center(
             child: _buildGameContent(),
           ),
+          if (_powerUpOnScreen != null)
+            Align(
+              alignment: _powerUpOnScreen!.alignment,
+              child: GestureDetector(
+                onTap: _collectPowerUp,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.shield, color: Colors.lightBlueAccent, size: 40),
+                ),
+              ),
+            ),
           // --- New: The confetti widget itself ---
           ConfettiWidget(
             confettiController: _confettiController,
