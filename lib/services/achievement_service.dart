@@ -1,14 +1,20 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement.dart';
 
 class AchievementService with ChangeNotifier {
   final List<Achievement> _achievements = [
-    Achievement(id: 'impulse_score_10'),
-    Achievement(id: 'reaction_time_250'),
-    Achievement(id: 'stroop_score_20'),
-    Achievement(id: 'play_all_three'),
-    Achievement(id: 'new_high_score'),
+    Achievement(id: 'impulse_score_10', icon: Icons.timer, emoji: '⏱️', color: Colors.blue),
+    Achievement(id: 'reaction_time_250', icon: Icons.bolt, emoji: '⚡', color: Colors.orange),
+    Achievement(id: 'stroop_score_20', icon: Icons.psychology, emoji: '🧠', color: Colors.purple),
+    Achievement(id: 'play_all_three', icon: Icons.games, emoji: '🎮', color: Colors.green),
+    Achievement(id: 'new_high_score', icon: Icons.trending_up, emoji: '📈', color: Colors.red),
+    Achievement(id: 'streak_7', icon: Icons.local_fire_department, emoji: '🔥', color: Colors.deepOrange),
+    Achievement(id: 'streak_30', icon: Icons.local_fire_department, emoji: '🔥', color: Colors.red),
+    Achievement(id: 'focus_master', icon: Icons.school, emoji: '🎓', color: Colors.indigo),
+    Achievement(id: 'coin_collector', icon: Icons.monetization_on, emoji: '💰', color: Colors.amber),
+    Achievement(id: 'breathing_guru', icon: Icons.air, emoji: '🧘', color: Colors.teal),
   ];
 
   List<Achievement> get achievements => _achievements;
@@ -25,19 +31,19 @@ class AchievementService with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> unlockAchievement(String id) async {
+  Future<String?> unlockAchievement(String id) async {
     final achievement = _achievements.firstWhere((ach) => ach.id == id, orElse: () => Achievement(id: 'not_found'));
-    if (achievement.id == 'not_found' || achievement.isUnlocked) return;
+    if (achievement.id == 'not_found' || achievement.isUnlocked) return null;
 
     achievement.isUnlocked = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ach_${achievement.id}', true);
     notifyListeners();
-    print('Achievement Unlocked: $id');
+    return id; // Return the id to show popup
   }
 
   // This is the new method that was missing
-  Future<void> markGamePlayed(String gameId) async {
+  Future<String?> markGamePlayed(String gameId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('played_$gameId', true);
 
@@ -46,7 +52,16 @@ class AchievementService with ChangeNotifier {
     final playedStroop = prefs.getBool('played_stroop') ?? false;
 
     if (playedImpulse && playedReaction && playedStroop) {
-      unlockAchievement('play_all_three');
+      return await unlockAchievement('play_all_three');
+    }
+    return null;
+  }
+
+  Achievement? getAchievement(String id) {
+    try {
+      return _achievements.firstWhere((ach) => ach.id == id);
+    } catch (e) {
+      return null;
     }
   }
 }

@@ -5,34 +5,32 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:confetti/confetti.dart';
 import 'dart:developer' as developer;
 import 'settings_screen.dart';
 import '../services/achievement_service.dart';
-import 'package:confetti/confetti.dart';
 
+// Data structures for Power-Ups
 enum PowerUpType { shield }
+
 class PowerUp {
   final PowerUpType type;
   final Alignment alignment;
   PowerUp({required this.type, required this.alignment});
 }
 
-enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate, gameOver }
 enum GameMode { classic, survival }
+enum GameState { notStarted, gettingReady, waiting, readyToPress, finishedSuccess, finishedEarly, finishedTooLate, gameOver }
+
 class ImpulseControlGameScreen extends StatefulWidget {
   final GameMode mode;
-
   const ImpulseControlGameScreen({super.key, required this.mode});
-
-  // --- New: Unique key for saving score history ---
   static const String kScoreHistory = 'impulse_score_history';
-
   @override
   State<ImpulseControlGameScreen> createState() => _ImpulseControlGameScreenState();
 }
 
 class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> with SingleTickerProviderStateMixin {
-  // ... (All existing state variables remain the same)
   GameState _gameState = GameState.notStarted;
   late AnimationController _animationController;
   Timer? _reactionTimer;
@@ -42,25 +40,20 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   int _countdown = 3;
   bool _soundEnabled = true;
   bool _hapticsEnabled = true;
-  final AudioPlayer _sfxPlayer = AudioPlayer();
-  late AchievementService _achievementService;
   late ConfettiController _confettiController;
+  late AchievementService _achievementService;
   int _combo = 1;
+
+  // State variables for Power-Ups
   PowerUp? _powerUpOnScreen;
   bool _isShieldActive = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _achievementService = Provider.of<AchievementService>(context, listen: false);
-  }
-
-  @override
   void initState() {
     super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
     _loadSettings();
     _loadHighScore();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _achievementService.markGamePlayed('impulse');
@@ -72,11 +65,26 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     _animationController.addStatusListener(_onAnimationStatusChanged);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _achievementService = Provider.of<AchievementService>(context, listen: false);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _reactionTimer?.cancel();
+    _countdownTimer?.cancel();
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  // --- All Logic Methods ---
+
   void _spawnPowerUp() {
-    // 25% chance to spawn a power-up if one isn't already on screen
-    if (_powerUpOnScreen == null && Random().nextInt(4) == 0) {
+    if (_powerUpOnScreen == null && Random().nextInt(4) == 0) { // 25% chance
       final random = Random();
-      // Generate a random position on the screen
       final alignment = Alignment(
         random.nextDouble() * 1.6 - 0.8, // x from -0.8 to 0.8
         random.nextDouble() * 1.6 - 0.8, // y from -0.8 to 0.8
@@ -87,7 +95,6 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     }
   }
 
-  // --- New: Logic to collect a power-up ---
   void _collectPowerUp() {
     if (_powerUpOnScreen?.type == PowerUpType.shield) {
       setState(() {
@@ -108,8 +115,10 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('המגן הגן עליך!'), duration: Duration(seconds: 1), backgroundColor: Colors.blue)
       );
+      // Restart the round after a short delay
       Timer(const Duration(milliseconds: 1200), _startCountdown);
     } else {
+      // Original failure logic
       _playSound('failure.mp3');
       if (_hapticsEnabled) HapticFeedback.heavyImpact();
       _animationController.stop();
@@ -124,54 +133,21 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     }
   }
 
-  // --- New: Method to save the score to a list ---
-  Future<void> _saveScoreToHistory() async {
-    if (_score == 0) return; // Don't save zero scores
-    final prefs = await SharedPreferences.getInstance();
-
-    // Fetch the existing list, or create a new one
-    final history = prefs.getStringList(ImpulseControlGameScreen.kScoreHistory) ?? [];
-
-    // Add the new score
-    history.add(_score.toString());
-
-    // Keep the list at a max of 20 entries
-    if (history.length > 20) {
-      history.removeAt(0);
-    }
-
-    // Save the updated list
-    await prefs.setStringList(ImpulseControlGameScreen.kScoreHistory, history);
-    developer.log('Impulse game score history saved: $history');
-  }
-
-  void _handleGameOver() {
-    _checkAndSaveHighScore();
-    _saveScoreToHistory(); // Save score to history on game over
-    // --- New: Logic to handle different modes ---
-    _combo = 1;
-    if (widget.mode == GameMode.survival) {
-      setState(() => _gameState = GameState.gameOver);
-    }
-  }
-
   void _onButtonPressed() {
     switch (_gameState) {
-    // ... (success case is the same)
+      case GameState.notStarted:
+        _score = 0;
+        _combo = 1;
+        _isShieldActive = false;
+        _powerUpOnScreen = null;
+        _startCountdown();
+        break;
       case GameState.waiting:
-        _handleFailure();
+        _handleFailure(); // Call the unified failure handler
         if (!_isShieldActive) setState(() => _gameState = GameState.finishedEarly);
         break;
-      case GameState.gameOver:
-        Navigator.of(context).pop();
-        break;
-
-    // ... (other cases are the same)
       case GameState.readyToPress:
-        _handleFailure();
-        if (!_isShieldActive) {
-          setState(() => _gameState = GameState.finishedTooLate);
-        }
+        _playSound('success.mp3');
         if (_hapticsEnabled) HapticFeedback.lightImpact();
         _reactionTimer?.cancel();
 
@@ -187,17 +163,12 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
 
         Timer(const Duration(milliseconds: 1200), _startCountdown);
         break;
-
-      case GameState.notStarted:
-        _score = 0;
-        _combo = 1;
-        _isShieldActive = false;
-        _powerUpOnScreen = null;
-        _startCountdown();
-        break;
       case GameState.finishedEarly:
       case GameState.finishedTooLate:
         _resetGame();
+        break;
+      case GameState.gameOver:
+        Navigator.of(context).pop();
         break;
       default:
         break;
@@ -210,16 +181,26 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       final reactionMillis = max(500, 2000 - ((_score ~/ 3) * 150));
       _reactionTimer = Timer(Duration(milliseconds: reactionMillis), () {
         if (_gameState == GameState.readyToPress) {
-          _playSound('failure.mp3');
-          if (_hapticsEnabled) HapticFeedback.heavyImpact();
-          _handleGameOver(); // <-- Call the new game over handler
-          setState(() => _gameState = GameState.finishedTooLate);
+          _handleFailure(); // Call the unified failure handler
+          if (!_isShieldActive) {
+            setState(() => _gameState = GameState.finishedTooLate);
+          }
         }
       });
     }
   }
 
-  // --- The rest of the file is unchanged ---
+  Future<void> _saveScoreToHistory() async {
+    if (_score == 0) return;
+    final prefs = await SharedPreferences.getInstance();
+    final history = prefs.getStringList(ImpulseControlGameScreen.kScoreHistory) ?? [];
+    history.add(_score.toString());
+    if (history.length > 20) {
+      history.removeAt(0);
+    }
+    await prefs.setStringList(ImpulseControlGameScreen.kScoreHistory, history);
+  }
+
   void _checkAndSaveHighScore() async {
     if (_score > _highScore) {
       _achievementService.unlockAchievement('new_high_score');
@@ -230,18 +211,13 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     }
   }
 
-  void _log(String message) {
-    final time = DateTime.now();
-    final logMessage = '[${time.hour}:${time.minute}:${time.second}.${time.millisecond}] $message';
-    developer.log(logMessage, name: 'GameLog');
-  }
-
   Future<void> _playSound(String soundFile) async {
     if (!_soundEnabled) return;
     try {
-      await _sfxPlayer.play(AssetSource('sounds/$soundFile'));
+      // Create a new player for each sound to avoid conflicts
+      await AudioPlayer().play(AssetSource('sounds/$soundFile'));
     } catch (e) {
-      _log('!!! ERROR playing sound "$soundFile": $e');
+      developer.log('!!! ERROR playing sound "$soundFile": $e', name: 'GameLog');
     }
   }
 
@@ -253,17 +229,6 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
         _hapticsEnabled = prefs.getBool(SettingsScreen.kHapticsEnabled) ?? true;
       });
     }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _reactionTimer?.cancel();
-    _countdownTimer?.cancel();
-    _sfxPlayer.dispose();
-    _confettiController.dispose();
-
-    super.dispose();
   }
 
   void _startCountdown() {
@@ -319,10 +284,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
             ),
         ],
       ),
-      body: Stack( // <-- New: Use a Stack to layer confetti on top
-        alignment: Alignment.topCenter,
+      body: Stack(
         children: [
-          // This is our original game content
           Center(
             child: _buildGameContent(),
           ),
@@ -334,19 +297,24 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black.withOpacity(0.7)
+                        : Colors.white.withOpacity(0.7),
                     shape: BoxShape.circle,
+                    border: Border.all(color: Colors.lightBlueAccent, width: 2),
                   ),
                   child: const Icon(Icons.shield, color: Colors.lightBlueAccent, size: 40),
                 ),
               ),
             ),
-          // --- New: The confetti widget itself ---
-          ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            shouldLoop: false,
-            colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
+            ),
           ),
         ],
       ),
@@ -361,14 +329,6 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-            child: _combo > 1
-                ? Text('x$_combo COMBO!', key: ValueKey<int>(_combo), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber))
-                : SizedBox(key: const ValueKey<int>(0), height: 34), // Placeholder for alignment
-          ),
-          const SizedBox(height: 10),
           const Icon(Icons.gamepad, size: 80, color: Colors.red),
           const SizedBox(height: 20),
           const Text('Game Over', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
@@ -385,6 +345,13 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+          child: _combo > 1
+              ? Text('x$_combo COMBO!', key: ValueKey<int>(_combo), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber))
+              : SizedBox(key: const ValueKey<int>(0), height: 34), // Placeholder for alignment
+        ),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
@@ -441,7 +408,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       case GameState.finishedEarly:
       case GameState.finishedTooLate: return 'שוב?';
       case GameState.gettingReady: return '';
-      case GameState.gameOver: return 'Home';
+      case GameState.gameOver: return 'חזרה';
     }
   }
 
@@ -449,10 +416,10 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
     String text;
     TextStyle? style = Theme.of(context).textTheme.displaySmall;
     switch (_gameState) {
-      case GameState.finishedSuccess: text = '+1'; break;
-      case GameState.finishedEarly: text = 'מוקדם מדי!'; style = style?.copyWith(fontSize: 32); break;
-      case GameState.finishedTooLate: text = 'מאוחר מדי!'; style = style?.copyWith(fontSize: 32); break;
-      default: return const SizedBox.shrink();
+      case GameState.finishedSuccess: text = '+${_combo -1}'; break; // Show combo bonus
+      case GameState.finishedEarly: text = widget.mode == GameMode.survival ? 'המשחק נגמר!' : 'מוקדם מדי!'; style = style?.copyWith(fontSize: 32); break;
+      case GameState.finishedTooLate: text = widget.mode == GameMode.survival ? 'המשחק נגמר!' : 'מאוחר מדי!'; style = style?.copyWith(fontSize: 32); break;
+      default: return const SizedBox(key: ValueKey<String>('empty'), height: 34); // Placeholder
     }
     return Text(text, key: ValueKey<String>(text), style: style?.copyWith(color: _getCircleColor()), textAlign: TextAlign.center);
   }
