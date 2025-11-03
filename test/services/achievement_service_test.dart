@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:super_stop/services/achievement_service.dart';
-import 'package:super_stop/models/achievement.dart';
 
 void main() {
   group('AchievementService', () {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/coin_provider.dart';
 import 'package:provider/provider.dart';
 

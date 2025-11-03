@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'services/achievement_service.dart';
 import 'theme_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/coin_provider.dart';
 import 'providers/daily_goals_provider.dart';
 import 'providers/level_provider.dart';

@@ -45,11 +45,9 @@ class LevelProvider with ChangeNotifier {
     final oldLevel = _level;
     _experience += amount;
     
-    bool leveledUp = false;
     while (_experience >= experienceForNextLevel) {
       _experience -= experienceForNextLevel;
       _level++;
-      leveledUp = true;
     }
     
     await _saveLevel();

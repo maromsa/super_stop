@@ -26,8 +26,8 @@ void main() {
           ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
           ChangeNotifierProvider(create: (_) => LevelProvider()),
         ],
-        child: MaterialApp(
-          home: const HomeScreen(),
+        child: const MaterialApp(
+          home: HomeScreen(),
         ),
       );
     }
