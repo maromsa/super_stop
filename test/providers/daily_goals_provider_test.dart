@@ -83,6 +83,7 @@ void main() {
     test('resetDailyProgress should clear counters and optionally streak', () async {
       final provider = await createProvider();
 
+      await provider.setDailyGoal(1);
       await provider.markGamePlayed();
       await provider.completeFocusSession(20);
       expect(provider.gamesPlayedToday, equals(1));

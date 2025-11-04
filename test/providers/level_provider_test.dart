@@ -89,7 +89,9 @@ void main() {
     test('should reset progress to defaults', () async {
       final provider = LevelProvider();
 
-      await provider.addExperience(250);
+      await Future.delayed(Duration.zero);
+
+      await provider.addExperience(150);
       expect(provider.level, greaterThan(1));
       expect(provider.experience, greaterThan(0));
 
