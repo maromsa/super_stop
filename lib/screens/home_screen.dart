@@ -1,68 +1,84 @@
 import 'package:flutter/material.dart';
-import 'achievements_screen.dart';
-import 'impulse_control_game_screen.dart';
-import 'reaction_time_screen.dart';
-import 'stroop_test_screen.dart';
-import 'settings_screen.dart';
-import 'breathing_exercise_screen.dart';
-import 'focus_timer_screen.dart';
-import 'progress_dashboard_screen.dart';
 import 'package:provider/provider.dart';
+
+import 'package:super_stop/l10n/app_localizations.dart';
+
+import '../models/mood_entry.dart';
 import '../providers/coin_provider.dart';
 import '../providers/daily_goals_provider.dart';
 import '../providers/level_provider.dart';
+import '../providers/mood_journal_provider.dart';
+import '../router/app_routes.dart';
 import '../services/achievement_service.dart';
 import '../widgets/achievement_popup.dart';
+import 'impulse_control_game_screen.dart' show GameMode;
+import 'reaction_time_screen.dart' show ReactionMode;
+import 'stroop_test_screen.dart' show StroopMode;
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   void _showInstructionsDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('איך משחקים?'),
-          content: const SingleChildScrollView(
+          title: Text(l10n.homeInstructionsTitle),
+          content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('משחק איפוק:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('חכה שהעיגול יתמלא וירוק, ואז לחץ מהר!'),
-                SizedBox(height: 15),
-                Text('מבחן תגובה:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('חכה שהמסך יהפוך לירוק, ואז לחץ מהר!'),
-                SizedBox(height: 15),
-                Text('מבחן סטרופ:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('לחץ על הכפתור שצבעו תואם לצבע המילה, לא למילה עצמה.'),
+                Text(l10n.homeInstructionsImpulseTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.homeInstructionsImpulseBody),
+                const SizedBox(height: 15),
+                Text(l10n.homeInstructionsReactionTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.homeInstructionsReactionBody),
+                const SizedBox(height: 15),
+                Text(l10n.homeInstructionsStroopTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.homeInstructionsStroopBody),
               ],
             ),
           ),
-          actions: <Widget>[ TextButton(child: const Text('הבנתי'), onPressed: () => Navigator.of(context).pop()) ],
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.homeInstructionsClose),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
         );
       },
     );
   }
 
   void _showReactionModeSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: const Text('בחר מצב משחק'),
+          title: Text(l10n.homeReactionModeTitle),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReactionTimeScreen(mode: ReactionMode.classic)));
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.reaction,
+                  arguments: ReactionMode.classic,
+                );
               },
-              child: const Text('קלאסי (אינסופי)'),
+              child: Text(l10n.homeReactionModeEndless),
             ),
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReactionTimeScreen(mode: ReactionMode.fiveRoundTest)));
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.reaction,
+                  arguments: ReactionMode.fiveRoundTest,
+                );
               },
-              child: const Text('מבחן (5 סיבובים)'),
+              child: Text(l10n.homeReactionModeTest),
             ),
           ],
         );
@@ -72,25 +88,34 @@ class HomeScreen extends StatelessWidget {
 
   // --- New: Method to show the mode selection dialog ---
   void _showImpulseModeSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: const Text('בחר צורת משחק'),
+          title: Text(l10n.homeImpulseModeTitle),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ImpulseControlGameScreen(mode: GameMode.classic)));
+                Navigator.pop(context);
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.impulse,
+                  arguments: GameMode.classic,
+                );
               },
-              child: const Text('קלאסי'),
+              child: Text(l10n.homeImpulseModeClassic),
             ),
             SimpleDialogOption(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ImpulseControlGameScreen(mode: GameMode.survival)));
+                Navigator.pop(context);
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.impulse,
+                  arguments: GameMode.survival,
+                );
               },
-              child: const Text('הישרדות'),
+              child: Text(l10n.homeImpulseModeSurvival),
             ),
           ],
         );
@@ -99,25 +124,34 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _showStroopModeSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: const Text('בחר מצב משחק'),
+          title: Text(l10n.homeStroopModeTitle),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const StroopTestScreen(mode: StroopMode.sprint)));
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.stroop,
+                  arguments: StroopMode.sprint,
+                );
               },
-              child: const Text('ספרינט (60 שניות)'),
+              child: Text(l10n.homeStroopModeSprint),
             ),
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const StroopTestScreen(mode: StroopMode.accuracy)));
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.stroop,
+                  arguments: StroopMode.accuracy,
+                );
               },
-              child: const Text('דיוק (טעות אחת פוסלת)'),
+              child: Text(l10n.homeStroopModeAccuracy),
             ),
           ],
         );
@@ -128,9 +162,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Super Stop'),
+        title: Text(l10n.homeTitle),
         centerTitle: true,
         actions: [
           Padding(
@@ -148,11 +183,11 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'איך משחקים?',
-            onPressed: () => _showInstructionsDialog(context),
-          ),
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              tooltip: l10n.homeInstructionsTooltip,
+              onPressed: () => _showInstructionsDialog(context),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -246,146 +281,201 @@ class HomeScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatBadge(
-                            Icons.local_fire_department,
-                            '${goalsProvider.streak}',
-                            'רצף',
-                            Colors.orange,
-                          ),
-                          _buildStatBadge(
-                            Icons.flag,
-                            '${goalsProvider.gamesPlayedToday}/${goalsProvider.dailyGoal}',
-                            'מטרה',
-                            Colors.green,
-                          ),
-                          _buildStatBadge(
-                            Icons.monetization_on,
-                            '${coinProvider.coins}',
-                            'מטבעות',
-                            Colors.amber,
-                          ),
+                            _buildStatBadge(
+                              Icons.local_fire_department,
+                              '${goalsProvider.streak}',
+                              l10n.homeStatStreak,
+                              Colors.orange,
+                            ),
+                            _buildStatBadge(
+                              Icons.flag,
+                              '${goalsProvider.gamesPlayedToday}/${goalsProvider.dailyGoal}',
+                              l10n.homeStatGoal,
+                              Colors.green,
+                            ),
+                            _buildStatBadge(
+                              Icons.monetization_on,
+                              '${coinProvider.coins}',
+                              l10n.homeStatCoins,
+                              Colors.amber,
+                            ),
                         ],
                       ),
                     ],
                   ),
                 );
               },
-            ),
-            
-            const SizedBox(height: 20),
-            const Text('בחר אתגר', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            
-            // Games Section
-            _GameSelectionButton(
-              label: 'משחק איפוק',
-              icon: Icons.timer,
-              onPressed: () {
-                _handleGamePlayed(context, 'impulse');
-                _showImpulseModeSelector(context);
-              },
-            ),
-            const SizedBox(height: 15),
-            _GameSelectionButton(
-              label: 'מבחן תגובה',
-              icon: Icons.bolt,
-              onPressed: () {
-                _handleGamePlayed(context, 'reaction');
-                _showReactionModeSelector(context);
-              },
-            ),
-            const SizedBox(height: 15),
-            _GameSelectionButton(
-              label: 'מבחן סטרופ',
-              icon: Icons.psychology,
-              onPressed: () {
-                _handleGamePlayed(context, 'stroop');
-                _showStroopModeSelector(context);
-              },
-            ),
-            
-            const SizedBox(height: 30),
-            const Text('כלים נוספים', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
+                ),
+
+              const SizedBox(height: 20),
+              Consumer<MoodJournalProvider>(
+                builder: (context, journal, _) {
+                  final latest = journal.latestEntry;
+                  final hasCheckIn = journal.hasCheckInToday;
+                  final moodLabel = latest != null ? _resolveMoodLabel(latest.mood, l10n) : null;
+                  final timeText = latest != null
+                      ? l10n.moodCheckInLastTime(TimeOfDay.fromDateTime(latest.timestamp).format(context))
+                      : l10n.moodDistributionEmpty;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('🧠', style: Theme.of(context).textTheme.headlineSmall),
+                                const SizedBox(width: 12),
+                                Text(
+                                  l10n.moodCheckInTitle,
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              latest != null ? moodLabel ?? '' : l10n.moodCheckInPrompt,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              timeText,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: () => Navigator.of(context).pushNamed(AppRoutes.moodCheckIn),
+                                  icon: const Icon(Icons.mood),
+                                  label: Text(l10n.moodCheckInButton),
+                                ),
+                                const SizedBox(width: 12),
+                                if (hasCheckIn)
+                                  Text(
+                                    l10n.moodCheckInToday,
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+              Text(l10n.homeChooseChallenge, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+
+              // Games Section
+              _GameSelectionButton(
+                label: l10n.homeGameImpulse,
+                icon: Icons.timer,
+                onPressed: () {
+                  _handleGamePlayed(context, 'impulse');
+                  _showImpulseModeSelector(context);
+                },
+              ),
+              const SizedBox(height: 15),
+              _GameSelectionButton(
+                label: l10n.homeGameReaction,
+                icon: Icons.bolt,
+                onPressed: () {
+                  _handleGamePlayed(context, 'reaction');
+                  _showReactionModeSelector(context);
+                },
+              ),
+              const SizedBox(height: 15),
+              _GameSelectionButton(
+                label: l10n.homeGameStroop,
+                icon: Icons.psychology,
+                onPressed: () {
+                  _handleGamePlayed(context, 'stroop');
+                  _showStroopModeSelector(context);
+                },
+              ),
+
+              const SizedBox(height: 30),
+              Text(l10n.homeAdditionalTools, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 15),
             
             // ADHD Support Tools
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: _CompactButton(
-                      label: 'תרגיל נשימה',
-                      icon: Icons.air,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const BreathingExerciseScreen()),
-                        );
-                      },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _CompactButton(
+                        label: l10n.homeToolBreathing,
+                        icon: Icons.air,
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.breathing);
+                        },
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: _CompactButton(
-                      label: 'טיימר ריכוז',
-                      icon: Icons.timer_outlined,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const FocusTimerScreen()),
-                        );
-                      },
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _CompactButton(
+                        label: l10n.homeToolFocusTimer,
+                        icon: Icons.timer_outlined,
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.focusTimer);
+                        },
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: _CompactButton(
-                      label: 'לוח התקדמות',
-                      icon: Icons.dashboard,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ProgressDashboardScreen()),
-                        );
-                      },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _CompactButton(
+                        label: l10n.homeToolProgress,
+                        icon: Icons.dashboard,
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.progress);
+                        },
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton.icon(
-                  icon: const Icon(Icons.emoji_events),
-                  label: const Text('הישגים'),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen()));
-                  },
-                ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.emoji_events),
+                    label: Text(l10n.homeButtonAchievements),
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.achievements);
+                    },
+                  ),
                 const SizedBox(width: 20),
-                TextButton.icon(
-                  icon: const Icon(Icons.settings),
-                  label: const Text('הגדרות'),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-                  },
-                ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.settings),
+                    label: Text(l10n.homeButtonSettings),
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.settings);
+                    },
+                  ),
               ],
             ),
             const SizedBox(height: 20),
@@ -457,6 +547,23 @@ class HomeScreen extends StatelessWidget {
     if (leveledUp) {
       if (!context.mounted) return;
       _showLevelUpDialog(context, levelProvider);
+    }
+  }
+
+  String _resolveMoodLabel(Mood mood, AppLocalizations l10n) {
+    switch (mood) {
+      case Mood.happy:
+        return l10n.moodHappy;
+      case Mood.angry:
+        return l10n.moodAngry;
+      case Mood.sad:
+        return l10n.moodSad;
+      case Mood.anxious:
+        return l10n.moodAnxious;
+      case Mood.calm:
+        return l10n.moodCalm;
+      case Mood.excited:
+        return l10n.moodExcited;
     }
   }
 

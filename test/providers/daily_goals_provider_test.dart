@@ -28,7 +28,11 @@ void main() {
       expect(provider.dailyGoal, equals(3));
       expect(provider.isGoalCompleted, isFalse);
       expect(provider.remainingGames, equals(3));
-      expect(provider.gamesProgress, equals(0.0));
+        expect(provider.gamesProgress, equals(0.0));
+        expect(provider.weeklyGames.length, equals(7));
+        expect(provider.weeklyGames.every((value) => value == 0), isTrue);
+        expect(provider.weeklyFocusMinutes.length, equals(7));
+        expect(provider.weeklyFocusMinutes.every((value) => value == 0), isTrue);
     });
 
     test('should mark game played and increment counters', () async {
@@ -57,7 +61,7 @@ void main() {
       expect(provider.isGoalCompleted, isTrue);
     });
 
-    test('should track focus minutes', () async {
+      test('should track focus minutes', () async {
       final provider = await createProvider();
 
       await provider.completeFocusSession(5);
@@ -66,6 +70,19 @@ void main() {
       await provider.completeFocusSession(10);
       expect(provider.focusMinutesToday, equals(15));
     });
+
+      test('should record weekly snapshots when days advance', () async {
+        final provider = await createProvider();
+
+        await provider.markGamePlayed();
+        await provider.completeFocusSession(12);
+
+        currentTime = currentTime.add(const Duration(days: 1, hours: 1));
+        await provider.markGamePlayed();
+
+        expect(provider.weeklyGames.last, equals(1));
+        expect(provider.weeklyFocusMinutes.last, equals(12));
+      });
 
     test('should allow setting custom daily goal and validate negative', () async {
       final provider = await createProvider();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/achievement.dart';
+import '../utils/prefs_keys.dart';
 
 class AchievementService with ChangeNotifier {
   final List<Achievement> _achievements = [
@@ -27,7 +29,7 @@ class AchievementService with ChangeNotifier {
   Future<void> _loadAchievements() async {
     final prefs = await SharedPreferences.getInstance();
     for (var ach in _achievements) {
-      ach.isUnlocked = prefs.getBool('ach_${ach.id}') ?? false;
+        ach.isUnlocked = prefs.getBool('${PrefsKeys.achievementsPrefix}${ach.id}') ?? false;
     }
     notifyListeners();
   }
@@ -38,7 +40,7 @@ class AchievementService with ChangeNotifier {
 
     achievement.isUnlocked = true;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('ach_${achievement.id}', true);
+      await prefs.setBool('${PrefsKeys.achievementsPrefix}${achievement.id}', true);
     notifyListeners();
     return id; // Return the id to show popup
   }
@@ -46,11 +48,11 @@ class AchievementService with ChangeNotifier {
   // This is the new method that was missing
   Future<String?> markGamePlayed(String gameId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('played_$gameId', true);
+      await prefs.setBool('${PrefsKeys.playedPrefix}$gameId', true);
 
-    final playedImpulse = prefs.getBool('played_impulse') ?? false;
-    final playedReaction = prefs.getBool('played_reaction') ?? false;
-    final playedStroop = prefs.getBool('played_stroop') ?? false;
+      final playedImpulse = prefs.getBool('${PrefsKeys.playedPrefix}impulse') ?? false;
+      final playedReaction = prefs.getBool('${PrefsKeys.playedPrefix}reaction') ?? false;
+      final playedStroop = prefs.getBool('${PrefsKeys.playedPrefix}stroop') ?? false;
 
     if (playedImpulse && playedReaction && playedStroop) {
       return await unlockAchievement('play_all_three');
@@ -90,7 +92,7 @@ class AchievementService with ChangeNotifier {
         continue;
       }
       achievement.isUnlocked = false;
-      await prefs.remove('ach_${achievement.id}');
+        await prefs.remove('${PrefsKeys.achievementsPrefix}${achievement.id}');
     }
     notifyListeners();
   }

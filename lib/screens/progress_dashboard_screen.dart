@@ -1,54 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../providers/daily_goals_provider.dart';
-import '../providers/coin_provider.dart';
+import 'package:provider/provider.dart';
 
-class ProgressDashboardScreen extends StatefulWidget {
+import 'package:super_stop/l10n/app_localizations.dart';
+
+import '../providers/coin_provider.dart';
+import '../providers/daily_goals_provider.dart';
+import '../router/app_routes.dart';
+
+class ProgressDashboardScreen extends StatelessWidget {
   const ProgressDashboardScreen({super.key});
 
   @override
-  State<ProgressDashboardScreen> createState() => _ProgressDashboardScreenState();
-}
-
-class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
-  List<int> _weeklyGames = [];
-  List<int> _weeklyFocus = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadWeeklyData();
-  }
-
-  Future<void> _loadWeeklyData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final gamesList = prefs.getStringList('weekly_games') ?? [];
-    final focusList = prefs.getStringList('weekly_focus') ?? [];
-    
-    setState(() {
-      _weeklyGames = gamesList.map((e) => int.tryParse(e) ?? 0).toList();
-      _weeklyFocus = focusList.map((e) => int.tryParse(e) ?? 0).toList();
-      
-      // Ensure we have 7 days of data
-      while (_weeklyGames.length < 7) {
-        _weeklyGames.insert(0, 0);
-      }
-      while (_weeklyFocus.length < 7) {
-        _weeklyFocus.insert(0, 0);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final goalsProvider = Provider.of<DailyGoalsProvider>(context);
-    final coinProvider = Provider.of<CoinProvider>(context);
+    final goalsProvider = context.watch<DailyGoalsProvider>();
+    final coinProvider = context.watch<CoinProvider>();
+    final weeklyGames = goalsProvider.weeklyGames;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('לוח התקדמות'),
+        title: Text(l10n.progressAppBarTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -56,22 +28,22 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildStreakCard(goalsProvider),
+            _buildStreakCard(goalsProvider, l10n),
             const SizedBox(height: 16),
-            _buildDailyGoalCard(goalsProvider),
+            _buildDailyGoalCard(goalsProvider, l10n),
             const SizedBox(height: 16),
-            _buildStatsCard(goalsProvider, coinProvider),
+            _buildStatsCard(goalsProvider, coinProvider, l10n),
             const SizedBox(height: 16),
-            _buildWeeklyChart(),
+            _buildWeeklyChart(weeklyGames, l10n),
             const SizedBox(height: 16),
-            _buildAchievementsPreview(),
+            _buildAchievementsPreview(context, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStreakCard(DailyGoalsProvider provider) {
+  Widget _buildStreakCard(DailyGoalsProvider provider, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -84,9 +56,9 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               '${provider.streak}',
               style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
             ),
-            const Text(
-              'ימים ברצף',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+            Text(
+              l10n.progressStreakSubtitle,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ],
         ),
@@ -94,8 +66,8 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-  Widget _buildDailyGoalCard(DailyGoalsProvider provider) {
-    final progress = provider.gamesPlayedToday / provider.dailyGoal;
+  Widget _buildDailyGoalCard(DailyGoalsProvider provider, AppLocalizations l10n) {
+    final progress = provider.dailyGoal > 0 ? provider.gamesPlayedToday / provider.dailyGoal : 0.0;
     final isCompleted = provider.isGoalCompleted;
 
     return Card(
@@ -105,17 +77,17 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'מטרה יומית',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                if (isCompleted)
-                  const Icon(Icons.check_circle, color: Colors.green, size: 30),
-              ],
-            ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.progressDailyGoalTitle,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  if (isCompleted)
+                    const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                ],
+              ),
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
@@ -126,22 +98,26 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              '${provider.gamesPlayedToday} / ${provider.dailyGoal} משחקים',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${provider.focusMinutesToday} דקות ריכוז היום',
-              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-            ),
+              Text(
+                l10n.progressDailyGoalLabel(provider.gamesPlayedToday, provider.dailyGoal),
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.progressDailyGoalFocus(provider.focusMinutesToday),
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsCard(DailyGoalsProvider goalsProvider, CoinProvider coinProvider) {
+  Widget _buildStatsCard(
+    DailyGoalsProvider goalsProvider,
+    CoinProvider coinProvider,
+    AppLocalizations l10n,
+  ) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -151,9 +127,17 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(Icons.monetization_on, '${coinProvider.coins}', 'מטבעות'),
-                _buildStatItem(Icons.games, '${goalsProvider.gamesPlayedToday}', 'משחקים היום'),
-                _buildStatItem(Icons.timer, '${goalsProvider.focusMinutesToday}', 'דקות ריכוז'),
+                _buildStatItem(Icons.monetization_on, '${coinProvider.coins}', l10n.progressStatsCoins),
+                _buildStatItem(Icons.games, '${goalsProvider.gamesPlayedToday}', l10n.progressStatsGamesToday),
+                _buildStatItem(Icons.timer, '${goalsProvider.focusMinutesToday}', l10n.progressStatsFocusToday),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(Icons.calendar_today, '${goalsProvider.totalWeeklyGames}', l10n.progressStatsWeeklyGames),
+                _buildStatItem(Icons.self_improvement, '${goalsProvider.totalWeeklyFocusMinutes}', l10n.progressStatsWeeklyFocus),
               ],
             ),
           ],
@@ -179,7 +163,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-  Widget _buildWeeklyChart() {
+  Widget _buildWeeklyChart(List<int> weeklyGames, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -187,17 +171,19 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'משחקים השבוע',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              l10n.progressWeeklyGamesTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             SizedBox(
               height: 200,
               child: BarChart(
                 BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: _weeklyGames.isEmpty ? 10 : (_weeklyGames.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble(),
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: weeklyGames.isEmpty
+                        ? 10
+                        : (weeklyGames.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble(),
                   barTouchData: BarTouchData(enabled: false),
                   titlesData: FlTitlesData(
                     show: true,
@@ -226,7 +212,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                   ),
                   gridData: FlGridData(show: false),
                   borderData: FlBorderData(show: false),
-                  barGroups: _weeklyGames.asMap().entries.map((entry) {
+                    barGroups: weeklyGames.asMap().entries.map((entry) {
                     return BarChartGroupData(
                       x: entry.key,
                       barRods: [
@@ -247,7 +233,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-  Widget _buildAchievementsPreview() {
+  Widget _buildAchievementsPreview(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -255,18 +241,17 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'הישגים',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              l10n.progressAchievementsTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextButton.icon(
               onPressed: () {
-                Navigator.pop(context);
-                // Navigate to achievements screen - will be handled by parent
+                Navigator.pushNamed(context, AppRoutes.achievements);
               },
               icon: const Icon(Icons.emoji_events),
-              label: const Text('צפה בכל ההישגים'),
+              label: Text(l10n.progressAchievementsButton),
             ),
           ],
         ),

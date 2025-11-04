@@ -5,12 +5,17 @@ import 'package:super_stop/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Check if emotion screen shows', (tester) async {
+  testWidgets('Allows skipping onboarding and reaching home', (tester) async {
     app.main();
     await tester.pumpAndSettle();
 
-    expect(find.text('איך אתה מרגיש עכשיו?'), findsOneWidget);
-    expect(find.text('😄 שמח'), findsOneWidget);
+    final skipButton = find.text('דלג');
+    expect(skipButton, findsOneWidget);
+
+    await tester.tap(skipButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('בחר אתגר'), findsOneWidget);
   });
 }
 

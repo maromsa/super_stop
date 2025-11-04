@@ -1,201 +1,141 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:super_stop/l10n/app_localizations.dart';
+
 import '../providers/coin_provider.dart';
 import '../providers/daily_goals_provider.dart';
+import '../providers/focus_timer_controller.dart';
 
-enum TimerState { idle, focus, breakTime, completed }
-
-class FocusTimerScreen extends StatefulWidget {
+class FocusTimerScreen extends StatelessWidget {
   const FocusTimerScreen({super.key});
 
   @override
-  State<FocusTimerScreen> createState() => _FocusTimerScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => FocusTimerController(),
+      child: const _FocusTimerContent(),
+    );
+  }
 }
 
-class _FocusTimerScreenState extends State<FocusTimerScreen> {
-  Timer? _timer;
-  int _timeRemaining = 0; // in seconds
-  TimerState _state = TimerState.idle;
-  int _selectedFocusMinutes = 5; // Default 5 minutes for ADHD kids
-  int _selectedBreakMinutes = 2;
-  bool _soundEnabled = true;
-  int _completedSessions = 0;
+class _FocusTimerContent extends StatefulWidget {
+  const _FocusTimerContent();
+
+  @override
+  State<_FocusTimerContent> createState() => _FocusTimerContentState();
+}
+
+class _FocusTimerContentState extends State<_FocusTimerContent> {
+  late final AudioPlayer _audioPlayer;
+  FocusTimerPhase? _previousPhase;
+  int _lastCompletionTicker = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
-    _loadPreferences();
-  }
-
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _soundEnabled = prefs.getBool('sound_enabled') ?? true;
-    });
-  }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedFocusMinutes = prefs.getInt('focus_minutes') ?? 5;
-      _selectedBreakMinutes = prefs.getInt('break_minutes') ?? 2;
-    });
-  }
-
-  Future<void> _savePreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('focus_minutes', _selectedFocusMinutes);
-    await prefs.setInt('break_minutes', _selectedBreakMinutes);
-  }
-
-  void _startFocus() {
-    setState(() {
-      _state = TimerState.focus;
-      _timeRemaining = _selectedFocusMinutes * 60;
-    });
-    _playSound('tick.mp3');
-    _startTimer();
-  }
-
-  void _startBreak() {
-    setState(() {
-      _state = TimerState.breakTime;
-      _timeRemaining = _selectedBreakMinutes * 60;
-    });
-    _playSound('tick.mp3');
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        if (_timeRemaining > 0) {
-          _timeRemaining--;
-        } else {
-          timer.cancel();
-          _onTimerComplete();
-        }
-      });
-    });
-  }
-
-  void _onTimerComplete() {
-    if (_state == TimerState.focus) {
-      _completedSessions++;
-      // Award coins for completing focus session
-      Provider.of<CoinProvider>(context, listen: false).addCoins(5);
-      
-      // Mark daily goal progress
-      Provider.of<DailyGoalsProvider>(context, listen: false)
-          .completeFocusSession(_selectedFocusMinutes);
-
-      setState(() {
-        _state = TimerState.completed;
-      });
-      _playSound('success.mp3');
-    } else if (_state == TimerState.breakTime) {
-      setState(() {
-        _state = TimerState.idle;
-      });
-      _playSound('tick.mp3');
-    }
-  }
-
-  void _pause() {
-    _timer?.cancel();
-  }
-
-  void _resume() {
-    _startTimer();
-  }
-
-  void _reset() {
-    _timer?.cancel();
-    setState(() {
-      _state = TimerState.idle;
-      _timeRemaining = 0;
-    });
-  }
-
-  void _playSound(String soundFile) {
-    if (!_soundEnabled) return;
-    AudioPlayer().play(AssetSource('sounds/$soundFile'));
+    _audioPlayer = AudioPlayer();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
-  }
-
-  String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<FocusTimerController>();
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!controller.isLoaded) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    _handlePhaseChange(controller);
+    _listenForCompletion(controller);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('טיימר ריכוז'),
+        title: Text(l10n.focusAppBarTitle),
         centerTitle: true,
       ),
-      body: _state == TimerState.idle
-          ? _buildSetupView()
-          : _buildTimerView(),
+      body: controller.phase == FocusTimerPhase.idle
+          ? _buildSetupView(controller, l10n)
+          : _buildTimerView(controller, l10n),
     );
   }
 
-  Widget _buildSetupView() {
+  void _handlePhaseChange(FocusTimerController controller) {
+    final currentPhase = controller.phase;
+    if (_previousPhase == currentPhase) {
+      return;
+    }
+
+    if (currentPhase == FocusTimerPhase.focus || currentPhase == FocusTimerPhase.breakTime) {
+      _playSound(controller, 'tick.mp3');
+    } else if (currentPhase == FocusTimerPhase.completed) {
+      _playSound(controller, 'success.mp3');
+    }
+
+    _previousPhase = currentPhase;
+  }
+
+  void _listenForCompletion(FocusTimerController controller) {
+    if (_lastCompletionTicker == controller.completionTicker) {
+      return;
+    }
+    _lastCompletionTicker = controller.completionTicker;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _handleFocusCompletion(controller);
+    });
+  }
+
+  Future<void> _handleFocusCompletion(FocusTimerController controller) async {
+    final coinProvider = context.read<CoinProvider>();
+    final goalsProvider = context.read<DailyGoalsProvider>();
+
+    if (controller.focusRewardCoins > 0) {
+      coinProvider.addCoins(controller.focusRewardCoins);
+    }
+
+    await goalsProvider.completeFocusSession(controller.selectedFocusMinutes);
+  }
+
+  Widget _buildSetupView(FocusTimerController controller, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'בחר זמן ריכוז',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          Text(
+            l10n.focusSetupTitle,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 40),
           _buildTimeSelector(
-            'זמן ריכוז (דקות)',
-            _selectedFocusMinutes,
-            [3, 5, 10, 15, 20],
-            (value) {
-              setState(() {
-                _selectedFocusMinutes = value;
-              });
-              _savePreferences();
-            },
+            title: l10n.focusFocusMinutesLabel,
+            currentValue: controller.selectedFocusMinutes,
+            options: const [3, 5, 10, 15, 20],
+            onChanged: controller.updateFocusMinutes,
+            formatLabel: (minutes) => l10n.focusMinutesChip(minutes),
           ),
           const SizedBox(height: 30),
           _buildTimeSelector(
-            'זמן הפסקה (דקות)',
-            _selectedBreakMinutes,
-            [1, 2, 3, 5],
-            (value) {
-              setState(() {
-                _selectedBreakMinutes = value;
-              });
-              _savePreferences();
-            },
+            title: l10n.focusBreakMinutesLabel,
+            currentValue: controller.selectedBreakMinutes,
+            options: const [1, 2, 3, 5],
+            onChanged: controller.updateBreakMinutes,
+            formatLabel: (minutes) => l10n.focusMinutesChip(minutes),
           ),
           const SizedBox(height: 40),
           ElevatedButton.icon(
-            onPressed: _startFocus,
+            onPressed: controller.startFocus,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('התחל ריכוז'),
+            label: Text(l10n.focusStartButton),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
               textStyle: const TextStyle(fontSize: 24),
@@ -203,7 +143,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'השלמת: $_completedSessions מפגשי ריכוז היום',
+            l10n.focusSessionsCompleted(controller.completedSessions),
             style: const TextStyle(fontSize: 18, color: Colors.grey),
           ),
         ],
@@ -211,7 +151,13 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
     );
   }
 
-  Widget _buildTimeSelector(String title, int currentValue, List<int> options, Function(int) onChanged) {
+  Widget _buildTimeSelector({
+    required String title,
+    required int currentValue,
+    required List<int> options,
+    required ValueChanged<int> onChanged,
+    String Function(int)? formatLabel,
+  }) {
     return Column(
       children: [
         Text(title, style: const TextStyle(fontSize: 20)),
@@ -222,7 +168,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
           children: options.map((minutes) {
             final isSelected = minutes == currentValue;
             return ChoiceChip(
-              label: Text('$minutes דק׳'),
+                label: Text(formatLabel != null ? formatLabel(minutes) : '$minutes'),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) onChanged(minutes);
@@ -234,10 +180,10 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
     );
   }
 
-  Widget _buildTimerView() {
-    final isFocus = _state == TimerState.focus;
-    final isBreak = _state == TimerState.breakTime;
-    final isCompleted = _state == TimerState.completed;
+  Widget _buildTimerView(FocusTimerController controller, AppLocalizations l10n) {
+    final isFocus = controller.phase == FocusTimerPhase.focus;
+    final isBreak = controller.phase == FocusTimerPhase.breakTime;
+    final isCompleted = controller.phase == FocusTimerPhase.completed;
 
     Color backgroundColor;
     String title;
@@ -245,15 +191,15 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
 
     if (isFocus) {
       backgroundColor = Colors.blue;
-      title = 'זמן ריכוז';
+      title = l10n.focusPhaseFocus;
       icon = Icons.school;
     } else if (isBreak) {
       backgroundColor = Colors.green;
-      title = 'זמן הפסקה';
+      title = l10n.focusPhaseBreak;
       icon = Icons.coffee;
     } else {
       backgroundColor = Colors.amber;
-      title = 'הושלם!';
+      title = l10n.focusPhaseCompleted;
       icon = Icons.check_circle;
     }
 
@@ -275,7 +221,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
             ),
             const SizedBox(height: 40),
             Text(
-              _formatTime(_timeRemaining),
+              _formatTime(controller.timeRemainingSeconds),
               style: const TextStyle(
                 fontSize: 72,
                 fontWeight: FontWeight.bold,
@@ -288,9 +234,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: _pause,
+                    onPressed: controller.pause,
                     icon: const Icon(Icons.pause),
-                    label: const Text('השהה'),
+                    label: Text(l10n.focusPause),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: backgroundColor,
@@ -299,9 +245,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
                   ),
                   const SizedBox(width: 20),
                   ElevatedButton.icon(
-                    onPressed: _resume,
+                    onPressed: controller.resume,
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('המשך'),
+                    label: Text(l10n.focusResume),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: backgroundColor,
@@ -311,19 +257,18 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
                 ],
               ),
             if (isCompleted) ...[
-              const Text(
-                'כל הכבוד! השלמת מפגש ריכוז!',
-                style: TextStyle(fontSize: 20, color: Colors.white),
+              Text(
+                l10n.focusCompletionMessage,
+                style: const TextStyle(fontSize: 20, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 onPressed: () {
-                  _reset();
-                  _startBreak();
+                  controller.startBreak();
                 },
                 icon: const Icon(Icons.coffee),
-                label: const Text('קח הפסקה'),
+                label: Text(l10n.focusTakeBreak),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.green,
@@ -333,12 +278,10 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
               ),
               const SizedBox(height: 20),
               TextButton(
-                onPressed: () {
-                  _reset();
-                },
-                child: const Text(
-                  'חזור לתפריט',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                onPressed: controller.reset,
+                child: Text(
+                  l10n.focusBackToMenu,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
             ],
@@ -346,6 +289,18 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
         ),
       ),
     );
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
+  void _playSound(FocusTimerController controller, String asset) {
+    if (!controller.soundEnabled) return;
+    _audioPlayer.stop();
+    _audioPlayer.play(AssetSource('sounds/$asset'));
   }
 }
 

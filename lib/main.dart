@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
-import 'services/achievement_service.dart';
-import 'theme_provider.dart';
+
+import 'l10n/app_localizations.dart';
 import 'providers/coin_provider.dart';
 import 'providers/daily_goals_provider.dart';
 import 'providers/level_provider.dart';
-
+import 'providers/mood_journal_provider.dart';
+import 'router/app_router.dart';
+import 'screens/home_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
+import 'services/achievement_service.dart';
+import 'theme_provider.dart';
 
 Future<void> main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
@@ -20,6 +23,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => CoinProvider()),
         ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
         ChangeNotifierProvider(create: (_) => LevelProvider()),
+        ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
       ],
       child: const MyApp(),
     ),
@@ -35,9 +39,9 @@ class MyApp extends StatelessWidget {
       builder: (context, themeProvider, child) {
         return MaterialApp(
           title: 'Super Stop',
-
-          // Removed localizationsDelegates and supportedLocales
-
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          onGenerateRoute: AppRouter.onGenerateRoute,
           themeMode: themeProvider.themeMode,
           theme: ThemeData(
             brightness: Brightness.light,
@@ -49,8 +53,31 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-          home: const HomeScreen(),
+          home: const _AppLaunchDecider(),
         );
+      },
+    );
+  }
+}
+
+class _AppLaunchDecider extends StatelessWidget {
+  const _AppLaunchDecider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<MoodJournalProvider>(
+      builder: (context, journal, _) {
+        if (!journal.isReady) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (journal.hasCompletedOnboarding) {
+          return const HomeScreen();
+        }
+
+        return const OnboardingScreen();
       },
     );
   }
