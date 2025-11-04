@@ -13,14 +13,32 @@ class DailyGoalsProvider with ChangeNotifier {
   int _focusMinutesToday = 0;
   int _dailyGoal = 3; // Default: 3 games per day
   DateTime? _lastActivityDate;
+  bool _goalMetPreviousDay = false;
+  final DateTime Function() _clock;
 
   int get streak => _streak;
   int get gamesPlayedToday => _gamesPlayedToday;
   int get focusMinutesToday => _focusMinutesToday;
   int get dailyGoal => _dailyGoal;
   bool get isGoalCompleted => _gamesPlayedToday >= _dailyGoal;
+  int get remainingGames {
+    final remaining = _dailyGoal - _gamesPlayedToday;
+    if (remaining < 0) {
+      return 0;
+    }
+    return remaining;
+  }
+  double get gamesProgress {
+    if (_dailyGoal <= 0) {
+      return 1.0;
+    }
+    final ratio = _gamesPlayedToday / _dailyGoal;
+    if (ratio < 0) return 0;
+    if (ratio > 1) return 1;
+    return ratio;
+  }
 
-  DailyGoalsProvider() {
+  DailyGoalsProvider({DateTime Function()? clock}) : _clock = clock ?? DateTime.now {
     _loadData();
     _checkDateReset();
   }
@@ -40,14 +58,12 @@ class DailyGoalsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _checkDateReset() async {
-    final now = DateTime.now();
+  Future<bool> _checkDateReset() async {
+    final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     if (_lastActivityDate == null) {
-      _lastActivityDate = today;
-      await _saveData();
-      return;
+      return false;
     }
 
     final lastDate = DateTime(
@@ -56,23 +72,30 @@ class DailyGoalsProvider with ChangeNotifier {
       _lastActivityDate!.day,
     );
 
-    if (today.isAfter(lastDate)) {
-      // New day - check if streak continues
-      if (today.difference(lastDate).inDays == 1) {
-        // Consecutive day - streak continues if goal was met yesterday
-        // We'll keep the streak if games were played yesterday
-        // (we assume goal was met if games were played)
-      } else {
-        // Gap in days - reset streak
-        _streak = 0;
-      }
-      
-      // Reset daily counters
-      _gamesPlayedToday = 0;
-      _focusMinutesToday = 0;
-      _lastActivityDate = today;
-      await _saveData();
+    if (!today.isAfter(lastDate)) {
+      return false;
     }
+
+    final dayGap = today.difference(lastDate).inDays;
+    final metGoalYesterday = _gamesPlayedToday >= _dailyGoal && _dailyGoal > 0;
+
+    if (dayGap == 1) {
+      if (metGoalYesterday) {
+        _goalMetPreviousDay = true;
+      } else {
+        _streak = 0;
+        _goalMetPreviousDay = false;
+      }
+    } else {
+      _streak = 0;
+      _goalMetPreviousDay = false;
+    }
+
+    _gamesPlayedToday = 0;
+    _focusMinutesToday = 0;
+    _lastActivityDate = today;
+    await _saveData();
+    return true;
   }
 
   Future<void> _saveData() async {
@@ -90,40 +113,42 @@ class DailyGoalsProvider with ChangeNotifier {
   }
 
   Future<void> markGamePlayed() async {
-    await _checkDateReset();
-    
-    final now = DateTime.now();
+    final didResetForNewDay = await _checkDateReset();
+
+    final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
-    
-    if (_lastActivityDate == null || 
-        today.difference(DateTime(_lastActivityDate!.year, _lastActivityDate!.month, _lastActivityDate!.day)).inDays > 0) {
-      // New day
-      if (_lastActivityDate != null && 
-          today.difference(DateTime(_lastActivityDate!.year, _lastActivityDate!.month, _lastActivityDate!.day)).inDays == 1) {
-        // Consecutive day - increment streak if goal was met
-        if (_gamesPlayedToday >= _dailyGoal) {
-          _streak++;
-        }
-      } else if (_lastActivityDate != null) {
-        // Gap in days - reset streak
-        _streak = 1;
-      } else {
-        // First day
-        _streak = 1;
-      }
-      
-      _gamesPlayedToday = 1;
+
+    if (_lastActivityDate == null) {
       _lastActivityDate = today;
     } else {
-      // Same day
-      _gamesPlayedToday++;
-      
-      // Check if goal was just completed
-      if (_gamesPlayedToday == _dailyGoal && _streak == 0) {
-        _streak = 1;
+      final lastDate = DateTime(
+        _lastActivityDate!.year,
+        _lastActivityDate!.month,
+        _lastActivityDate!.day,
+      );
+
+      if (today.isAfter(lastDate) && !didResetForNewDay) {
+        _goalMetPreviousDay = false;
+        _gamesPlayedToday = 0;
+        _lastActivityDate = today;
       }
     }
-    
+
+    _gamesPlayedToday++;
+
+    if (_streak == 0) {
+      _streak = 1;
+    }
+
+    if (_dailyGoal > 0 && _gamesPlayedToday == _dailyGoal) {
+      if (_goalMetPreviousDay) {
+        _streak = _streak == 0 ? 1 : _streak + 1;
+      } else {
+        _streak = 1;
+      }
+      _goalMetPreviousDay = true;
+    }
+
     await _saveData();
   }
 
@@ -134,7 +159,23 @@ class DailyGoalsProvider with ChangeNotifier {
   }
 
   Future<void> setDailyGoal(int goal) async {
+    if (goal < 0) {
+      throw ArgumentError.value(goal, 'goal', 'Daily goal cannot be negative.');
+    }
     _dailyGoal = goal;
+    _goalMetPreviousDay = false;
+    await _saveData();
+  }
+
+  Future<void> resetDailyProgress({bool preserveStreak = true}) async {
+    _gamesPlayedToday = 0;
+    _focusMinutesToday = 0;
+    if (!preserveStreak) {
+      _streak = 0;
+    }
+    _goalMetPreviousDay = false;
+    final now = _clock();
+    _lastActivityDate = DateTime(now.year, now.month, now.day);
     await _saveData();
   }
 }
