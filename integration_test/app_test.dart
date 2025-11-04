@@ -9,13 +9,16 @@ void main() {
     app.main();
     await tester.pumpAndSettle();
 
-    final skipButton = find.text('דלג');
+    Finder skipButton = find.text('דלג');
+    if (skipButton.evaluate().isEmpty) {
+      skipButton = find.text('Skip');
+    }
     expect(skipButton, findsOneWidget);
 
     await tester.tap(skipButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('בחר אתגר'), findsOneWidget);
+    expect(find.text('בחר אתגר').evaluate().isNotEmpty || find.text('Choose a challenge').evaluate().isNotEmpty, isTrue);
   });
 }
 

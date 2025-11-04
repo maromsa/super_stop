@@ -8,13 +8,11 @@ import '../utils/prefs_keys.dart';
 enum FocusTimerPhase { idle, focus, breakTime, completed }
 
 class FocusTimerController extends ChangeNotifier {
-  FocusTimerController({DateTime Function()? clock, Duration tickDuration = const Duration(seconds: 1)})
-      : _clock = clock ?? DateTime.now,
-        _tickDuration = tickDuration {
+  FocusTimerController({Duration tickDuration = const Duration(seconds: 1)})
+      : _tickDuration = tickDuration {
     _hydrate();
   }
 
-  final DateTime Function() _clock;
   final Duration _tickDuration;
   Timer? _timer;
 

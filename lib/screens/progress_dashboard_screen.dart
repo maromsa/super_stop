@@ -77,17 +77,17 @@ class ProgressDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.progressDailyGoalTitle,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  if (isCompleted)
-                    const Icon(Icons.check_circle, color: Colors.green, size: 30),
-                ],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.progressDailyGoalTitle,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                if (isCompleted)
+                  const Icon(Icons.check_circle, color: Colors.green, size: 30),
+              ],
+            ),
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
@@ -98,15 +98,15 @@ class ProgressDashboardScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-              Text(
-                l10n.progressDailyGoalLabel(provider.gamesPlayedToday, provider.dailyGoal),
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.progressDailyGoalFocus(provider.focusMinutesToday),
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
+            Text(
+              l10n.progressDailyGoalLabel(provider.gamesPlayedToday, provider.dailyGoal),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.progressDailyGoalFocus(provider.focusMinutesToday),
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
           ],
         ),
       ),

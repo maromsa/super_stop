@@ -32,21 +32,21 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const FocusTimerScreen());
       case AppRoutes.progress:
         return MaterialPageRoute(builder: (_) => const ProgressDashboardScreen());
-        case AppRoutes.impulse:
-          final mode = settings.arguments as GameMode? ?? GameMode.classic;
-          return MaterialPageRoute(
-            builder: (_) => ImpulseControlGameScreen(mode: mode),
-          );
-        case AppRoutes.reaction:
-          final mode = settings.arguments as ReactionMode? ?? ReactionMode.classic;
-          return MaterialPageRoute(
-            builder: (_) => ReactionTimeScreen(mode: mode),
-          );
-        case AppRoutes.stroop:
-          final mode = settings.arguments as StroopMode? ?? StroopMode.sprint;
-          return MaterialPageRoute(
-            builder: (_) => StroopTestScreen(mode: mode),
-          );
+      case AppRoutes.impulse:
+        final mode = settings.arguments as GameMode? ?? GameMode.classic;
+        return MaterialPageRoute(
+          builder: (_) => ImpulseControlGameScreen(mode: mode),
+        );
+      case AppRoutes.reaction:
+        final mode = settings.arguments as ReactionMode? ?? ReactionMode.classic;
+        return MaterialPageRoute(
+          builder: (_) => ReactionTimeScreen(mode: mode),
+        );
+      case AppRoutes.stroop:
+        final mode = settings.arguments as StroopMode? ?? StroopMode.sprint;
+        return MaterialPageRoute(
+          builder: (_) => StroopTestScreen(mode: mode),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

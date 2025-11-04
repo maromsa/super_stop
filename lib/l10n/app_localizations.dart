@@ -112,6 +112,99 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Achievements'**
   String get achievementsButton;
+
+  String get homeInstructionsTooltip;
+  String get homeInstructionsTitle;
+  String get homeInstructionsImpulseTitle;
+  String get homeInstructionsImpulseBody;
+  String get homeInstructionsReactionTitle;
+  String get homeInstructionsReactionBody;
+  String get homeInstructionsStroopTitle;
+  String get homeInstructionsStroopBody;
+  String get homeInstructionsClose;
+  String get homeStatStreak;
+  String get homeStatGoal;
+  String get homeStatCoins;
+  String get homeTitle;
+  String get homeChooseChallenge;
+  String get homeGameImpulse;
+  String get homeGameReaction;
+  String get homeGameStroop;
+  String get homeAdditionalTools;
+  String get homeToolBreathing;
+  String get homeToolFocusTimer;
+  String get homeToolProgress;
+  String get homeButtonAchievements;
+  String get homeButtonSettings;
+  String get homeReactionModeTitle;
+  String get homeReactionModeEndless;
+  String get homeReactionModeTest;
+  String get homeImpulseModeTitle;
+  String get homeImpulseModeClassic;
+  String get homeImpulseModeSurvival;
+  String get homeStroopModeTitle;
+  String get homeStroopModeSprint;
+  String get homeStroopModeAccuracy;
+
+  String get focusAppBarTitle;
+  String get focusSetupTitle;
+  String get focusFocusMinutesLabel;
+  String get focusBreakMinutesLabel;
+  String get focusStartButton;
+  String focusSessionsCompleted(int count);
+  String focusMinutesChip(int minutes);
+  String get focusPhaseFocus;
+  String get focusPhaseBreak;
+  String get focusPhaseCompleted;
+  String get focusPause;
+  String get focusResume;
+  String get focusCompletionMessage;
+  String get focusTakeBreak;
+  String get focusBackToMenu;
+
+  String get progressAppBarTitle;
+  String get progressStreakSubtitle;
+  String get progressDailyGoalTitle;
+  String progressDailyGoalLabel(int played, int goal);
+  String progressDailyGoalFocus(int minutes);
+  String get progressStatsCoins;
+  String get progressStatsGamesToday;
+  String get progressStatsFocusToday;
+  String get progressStatsWeeklyGames;
+  String get progressStatsWeeklyFocus;
+  String get progressWeeklyGamesTitle;
+  String get progressAchievementsTitle;
+  String get progressAchievementsButton;
+
+  String get moodCheckInTitle;
+  String get moodCheckInPrompt;
+  String get moodCheckInButton;
+  String get moodCheckInToday;
+  String get moodCheckInThanks;
+  String get moodCheckInLastTitle;
+  String moodCheckInLastTime(String time);
+  String get moodDistributionEmpty;
+  String get moodDistributionTitle;
+  String get moodHappy;
+  String get moodAngry;
+  String get moodSad;
+  String get moodAnxious;
+  String get moodCalm;
+  String get moodExcited;
+
+  String get onboardingSkip;
+  String get onboardingWelcomeTitle;
+  String get onboardingWelcomeBody;
+  String get onboardingFeatureTitle;
+  String get onboardingFeatureGames;
+  String get onboardingFeatureFocus;
+  String get onboardingFeatureRewards;
+  String get onboardingFeatureProgress;
+  String get onboardingMoodTitle;
+  String get onboardingMoodSubtitle;
+  String get onboardingBack;
+  String get onboardingNext;
+  String get onboardingMoodPrompt;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
