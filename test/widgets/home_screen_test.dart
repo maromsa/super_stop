@@ -74,20 +74,21 @@ void main() {
       expect(find.byIcon(Icons.monetization_on), findsWidgets);
     });
 
-    testWidgets('should navigate to game mode selector on game button tap', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+      testWidgets('should navigate to game mode selector on game button tap', (WidgetTester tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
 
-      // Find and tap the impulse control game button
-      final gameButton = find.text('משחק איפוק');
-      expect(gameButton, findsOneWidget);
-      
-      await tester.tap(gameButton);
-      await tester.pumpAndSettle();
+        // Find and tap the impulse control game button (ensure it's visible first)
+        final gameButton = find.text('משחק איפוק');
+        expect(gameButton, findsOneWidget);
 
-      // Should show mode selector dialog
-      expect(find.text('בחר צורת משחק'), findsOneWidget);
-    });
+        await tester.ensureVisible(gameButton);
+        await tester.tap(gameButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Should show mode selector dialog
+        expect(find.text('בחר צורת משחק'), findsOneWidget);
+      });
 
     testWidgets('should show help dialog when help button is tapped', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
