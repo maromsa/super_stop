@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:super_stop/screens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:super_stop/l10n/app_localizations.dart';
 import 'package:super_stop/providers/coin_provider.dart';
 import 'package:super_stop/providers/daily_goals_provider.dart';
 import 'package:super_stop/providers/level_provider.dart';
+import 'package:super_stop/providers/mood_journal_provider.dart';
+import 'package:super_stop/screens/home_screen.dart';
 import 'package:super_stop/services/achievement_service.dart';
 import 'package:super_stop/theme_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('HomeScreen Widget Tests', () {
@@ -17,20 +19,24 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    Widget createTestWidget() {
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          ChangeNotifierProvider(create: (_) => AchievementService()),
-          ChangeNotifierProvider(create: (_) => CoinProvider()),
-          ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
-          ChangeNotifierProvider(create: (_) => LevelProvider()),
-        ],
-        child: const MaterialApp(
-          home: HomeScreen(),
-        ),
-      );
-    }
+      Widget createTestWidget() {
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => AchievementService()),
+            ChangeNotifierProvider(create: (_) => CoinProvider()),
+            ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
+            ChangeNotifierProvider(create: (_) => LevelProvider()),
+            ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('he'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        );
+      }
 
     testWidgets('should display home screen with all key elements', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());

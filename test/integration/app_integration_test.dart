@@ -12,10 +12,23 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    testWidgets('app should start and display home screen', (WidgetTester tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      Future<void> launchAndReachHome(WidgetTester tester) async {
+        app.main();
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        Finder skipButton = find.text('דלג');
+        if (skipButton.evaluate().isEmpty) {
+          skipButton = find.text('Skip');
+        }
+
+        if (skipButton.evaluate().isNotEmpty) {
+          await tester.tap(skipButton);
+          await tester.pumpAndSettle(const Duration(seconds: 2));
+        }
+      }
+
+      testWidgets('app should start and display home screen', (WidgetTester tester) async {
+        await launchAndReachHome(tester);
 
       // Verify home screen is displayed (check for key elements)
       // The home screen should have at least one of these elements
@@ -28,8 +41,7 @@ void main() {
     });
 
     testWidgets('verify stats widgets are present', (WidgetTester tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+        await launchAndReachHome(tester);
 
       // Verify stats icons are displayed (at least one should be present)
       final hasStats = find.byIcon(Icons.local_fire_department).evaluate().isNotEmpty ||
