@@ -17,7 +17,7 @@ void main() {
 
     test('should have achievements with required properties', () {
       final service = AchievementService();
-      
+
       for (final achievement in service.achievements) {
         expect(achievement.id, isNotEmpty);
         expect(achievement.isUnlocked, isA<bool>());
@@ -33,7 +33,7 @@ void main() {
       );
 
       expect(achievement.isUnlocked, isFalse);
-      
+
       await service.unlockAchievement('impulse_score_10');
       expect(achievement.isUnlocked, isTrue);
     });
@@ -44,7 +44,7 @@ void main() {
 
       await service.unlockAchievement('impulse_score_10');
       final result = await service.unlockAchievement('impulse_score_10');
-      
+
       expect(result, isNull);
     });
 
@@ -75,7 +75,7 @@ void main() {
 
     test('getAchievement should return correct achievement', () {
       final service = AchievementService();
-      
+
       final achievement = service.getAchievement('impulse_score_10');
       expect(achievement, isNotNull);
       expect(achievement?.id, equals('impulse_score_10'));
@@ -83,17 +83,16 @@ void main() {
 
     test('getAchievement should return null for invalid id', () {
       final service = AchievementService();
-      
+
       final achievement = service.getAchievement('invalid_id');
       expect(achievement, isNull);
     });
 
     test('should have achievements with emojis and colors', () {
       final service = AchievementService();
-      
+
       for (final achievement in service.achievements) {
-        // Check that new achievements have emoji and color
-        if (achievement.id.startsWith('streak') || 
+        if (achievement.id.startsWith('streak') ||
             achievement.id.startsWith('focus') ||
             achievement.id.startsWith('coin') ||
             achievement.id.startsWith('breathing')) {
@@ -101,6 +100,55 @@ void main() {
           expect(achievement.color, isNotNull);
         }
       }
+    });
+
+    test('unlockedAchievements getter should reflect unlocked state', () async {
+      final service = AchievementService();
+      await Future.delayed(Duration.zero);
+
+      expect(service.unlockedAchievements, isEmpty);
+
+      await service.unlockAchievement('impulse_score_10');
+      await service.unlockAchievement('reaction_time_250');
+
+      final unlockedIds = service.unlockedAchievements.map((a) => a.id).toSet();
+      expect(unlockedIds, containsAll(['impulse_score_10', 'reaction_time_250']));
+      expect(service.isAchievementUnlocked('impulse_score_10'), isTrue);
+      expect(service.isAchievementUnlocked('play_all_three'), isFalse);
+    });
+
+    test('unlockMultiple should unlock batch and skip already unlocked', () async {
+      final service = AchievementService();
+      await Future.delayed(Duration.zero);
+
+      final unlocked = await service.unlockMultiple([
+        'impulse_score_10',
+        'reaction_time_250',
+        'invalid_id',
+      ]);
+
+      expect(unlocked, equals(['impulse_score_10', 'reaction_time_250']));
+
+      final secondPass = await service.unlockMultiple([
+        'impulse_score_10',
+        'play_all_three',
+      ]);
+
+      expect(secondPass, equals(['play_all_three']));
+    });
+
+    test('resetAchievements should clear progress while preserving requested ids', () async {
+      final service = AchievementService();
+      await Future.delayed(Duration.zero);
+
+      await service.unlockAchievement('impulse_score_10');
+      await service.unlockAchievement('reaction_time_250');
+
+      await service.resetAchievements(preserveIds: ['reaction_time_250']);
+
+      expect(service.isAchievementUnlocked('impulse_score_10'), isFalse);
+      expect(service.isAchievementUnlocked('reaction_time_250'), isTrue);
+      expect(service.unlockedAchievements.map((a) => a.id), contains('reaction_time_250'));
     });
   });
 }

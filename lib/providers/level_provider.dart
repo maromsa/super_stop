@@ -13,6 +13,7 @@ class LevelProvider with ChangeNotifier {
   int get experienceForNextLevel => _level * 100;
   double get experienceProgress => _experience / experienceForNextLevel;
   String get levelTitle => _getLevelTitle(_level);
+  double get experiencePercentage => (experienceProgress.clamp(0.0, 1.0)) * 100;
 
   LevelProvider() {
     _loadLevel();
@@ -56,6 +57,20 @@ class LevelProvider with ChangeNotifier {
       return true; // Leveled up!
     }
     return false;
+  }
+
+  Future<bool> addExperienceWithBonus(int baseAmount, {double multiplier = 1.0}) {
+    if (multiplier < 0) {
+      throw ArgumentError.value(multiplier, 'multiplier', 'Multiplier must be positive.');
+    }
+    final boostedAmount = (baseAmount * multiplier).round();
+    return addExperience(boostedAmount);
+  }
+
+  Future<void> resetProgress() async {
+    _level = 1;
+    _experience = 0;
+    await _saveLevel();
   }
 
   int getTotalExperience() {

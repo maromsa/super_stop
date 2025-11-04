@@ -13,14 +13,31 @@ class DailyGoalsProvider with ChangeNotifier {
   int _focusMinutesToday = 0;
   int _dailyGoal = 3; // Default: 3 games per day
   DateTime? _lastActivityDate;
+  final DateTime Function() _clock;
 
   int get streak => _streak;
   int get gamesPlayedToday => _gamesPlayedToday;
   int get focusMinutesToday => _focusMinutesToday;
   int get dailyGoal => _dailyGoal;
   bool get isGoalCompleted => _gamesPlayedToday >= _dailyGoal;
+  int get remainingGames {
+    final remaining = _dailyGoal - _gamesPlayedToday;
+    if (remaining < 0) {
+      return 0;
+    }
+    return remaining;
+  }
+  double get gamesProgress {
+    if (_dailyGoal <= 0) {
+      return 1.0;
+    }
+    final ratio = _gamesPlayedToday / _dailyGoal;
+    if (ratio < 0) return 0;
+    if (ratio > 1) return 1;
+    return ratio;
+  }
 
-  DailyGoalsProvider() {
+  DailyGoalsProvider({DateTime Function()? clock}) : _clock = clock ?? DateTime.now {
     _loadData();
     _checkDateReset();
   }
@@ -41,7 +58,7 @@ class DailyGoalsProvider with ChangeNotifier {
   }
 
   Future<void> _checkDateReset() async {
-    final now = DateTime.now();
+    final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
     
     if (_lastActivityDate == null) {
@@ -92,7 +109,7 @@ class DailyGoalsProvider with ChangeNotifier {
   Future<void> markGamePlayed() async {
     await _checkDateReset();
     
-    final now = DateTime.now();
+    final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
     
     if (_lastActivityDate == null || 
@@ -134,7 +151,21 @@ class DailyGoalsProvider with ChangeNotifier {
   }
 
   Future<void> setDailyGoal(int goal) async {
+    if (goal < 0) {
+      throw ArgumentError.value(goal, 'goal', 'Daily goal cannot be negative.');
+    }
     _dailyGoal = goal;
+    await _saveData();
+  }
+
+  Future<void> resetDailyProgress({bool preserveStreak = true}) async {
+    _gamesPlayedToday = 0;
+    _focusMinutesToday = 0;
+    if (!preserveStreak) {
+      _streak = 0;
+    }
+    final now = _clock();
+    _lastActivityDate = DateTime(now.year, now.month, now.day);
     await _saveData();
   }
 }

@@ -41,10 +41,12 @@ void main() {
       final provider = LevelProvider();
       await Future.delayed(const Duration(milliseconds: 100));
       expect(provider.experienceProgress, equals(0.0));
+      expect(provider.experiencePercentage, equals(0.0));
       
       // Add 50 XP, progress should be 0.5 (50/100)
       await provider.addExperience(50);
       expect(provider.experienceProgress, closeTo(0.5, 0.01));
+      expect(provider.experiencePercentage, closeTo(50.0, 0.01));
     });
 
     test('should provide correct level titles', () {
@@ -63,6 +65,38 @@ void main() {
       
       await provider.addExperience(200); // Level 3 (needs 200 XP for level 2->3)
       expect(provider.level, equals(3));
+    });
+
+    test('should apply bonus experience helper', () async {
+      final provider = LevelProvider();
+
+      final leveledUp = await provider.addExperienceWithBonus(40, multiplier: 2.5);
+      expect(leveledUp, isTrue);
+      expect(provider.level, equals(2));
+      expect(provider.experience, equals(0));
+
+      final leveledAgain = await provider.addExperienceWithBonus(80, multiplier: 1.0);
+      expect(leveledAgain, isFalse);
+      expect(provider.level, equals(2));
+      expect(provider.experience, equals(80));
+    });
+
+    test('should reject negative bonus multiplier', () {
+      final provider = LevelProvider();
+      expect(() => provider.addExperienceWithBonus(10, multiplier: -0.5), throwsArgumentError);
+    });
+
+    test('should reset progress to defaults', () async {
+      final provider = LevelProvider();
+
+      await provider.addExperience(250);
+      expect(provider.level, greaterThan(1));
+      expect(provider.experience, greaterThan(0));
+
+      await provider.resetProgress();
+      expect(provider.level, equals(1));
+      expect(provider.experience, equals(0));
+      expect(provider.experiencePercentage, equals(0.0));
     });
 
     test('should persist level and experience', () async {

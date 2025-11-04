@@ -17,6 +17,8 @@ class AchievementService with ChangeNotifier {
   ];
 
   List<Achievement> get achievements => _achievements;
+  List<Achievement> get unlockedAchievements =>
+      _achievements.where((ach) => ach.isUnlocked).toList(growable: false);
 
   AchievementService() {
     _loadAchievements();
@@ -62,5 +64,34 @@ class AchievementService with ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  bool isAchievementUnlocked(String id) {
+    return _achievements.any((ach) => ach.id == id && ach.isUnlocked);
+  }
+
+  Future<List<String>> unlockMultiple(Iterable<String> ids) async {
+    final unlocked = <String>[];
+    for (final id in ids) {
+      final result = await unlockAchievement(id);
+      if (result != null) {
+        unlocked.add(result);
+      }
+    }
+    return unlocked;
+  }
+
+  Future<void> resetAchievements({Iterable<String>? preserveIds}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final preserved = preserveIds?.toSet() ?? <String>{};
+
+    for (final achievement in _achievements) {
+      if (preserved.contains(achievement.id)) {
+        continue;
+      }
+      achievement.isUnlocked = false;
+      await prefs.remove('ach_${achievement.id}');
+    }
+    notifyListeners();
   }
 }
