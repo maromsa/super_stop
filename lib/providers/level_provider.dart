@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/prefs_keys.dart';
+
 class LevelProvider with ChangeNotifier {
-  static const String _kLevelKey = 'player_level';
-  static const String _kExperienceKey = 'player_experience';
-  
   int _level = 1;
   int _experience = 0;
 
@@ -30,15 +29,15 @@ class LevelProvider with ChangeNotifier {
 
   Future<void> _loadLevel() async {
     final prefs = await SharedPreferences.getInstance();
-    _level = prefs.getInt(_kLevelKey) ?? 1;
-    _experience = prefs.getInt(_kExperienceKey) ?? 0;
+    _level = prefs.getInt(PrefsKeys.playerLevel) ?? 1;
+    _experience = prefs.getInt(PrefsKeys.playerExperience) ?? 0;
     notifyListeners();
   }
 
   Future<void> _saveLevel() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_kLevelKey, _level);
-    await prefs.setInt(_kExperienceKey, _experience);
+    await prefs.setInt(PrefsKeys.playerLevel, _level);
+    await prefs.setInt(PrefsKeys.playerExperience, _experience);
     notifyListeners();
   }
 

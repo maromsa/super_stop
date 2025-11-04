@@ -3,8 +3,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/prefs_keys.dart';
+
 class CoinProvider with ChangeNotifier {
-  static const String _kCoinsKey = 'player_coins';
   int _coins = 0;
 
   int get coins => _coins;
@@ -16,13 +17,13 @@ class CoinProvider with ChangeNotifier {
 
   Future<void> _loadCoins() async {
     final prefs = await SharedPreferences.getInstance();
-    _coins = prefs.getInt(_kCoinsKey) ?? 0;
+    _coins = prefs.getInt(PrefsKeys.playerCoins) ?? 0;
     notifyListeners();
   }
 
   Future<void> _saveCoins() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_kCoinsKey, _coins);
+    await prefs.setInt(PrefsKeys.playerCoins, _coins);
   }
 
   void addCoins(int amount) {

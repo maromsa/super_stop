@@ -1,13 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DailyGoalsProvider with ChangeNotifier {
-  static const String _kStreakKey = 'daily_streak';
-  static const String _kLastDateKey = 'last_activity_date';
-  static const String _kGamesPlayedKey = 'games_played_today';
-  static const String _kFocusMinutesKey = 'focus_minutes_today';
-  static const String _kDailyGoalKey = 'daily_goal_games';
+import '../utils/prefs_keys.dart';
 
+class DailyGoalsProvider with ChangeNotifier {
   int _streak = 0;
   int _gamesPlayedToday = 0;
   int _focusMinutesToday = 0;
@@ -15,12 +11,18 @@ class DailyGoalsProvider with ChangeNotifier {
   DateTime? _lastActivityDate;
   bool _goalMetPreviousDay = false;
   final DateTime Function() _clock;
+  final List<int> _weeklyGames = List<int>.filled(7, 0, growable: true);
+  final List<int> _weeklyFocus = List<int>.filled(7, 0, growable: true);
 
   int get streak => _streak;
   int get gamesPlayedToday => _gamesPlayedToday;
   int get focusMinutesToday => _focusMinutesToday;
   int get dailyGoal => _dailyGoal;
   bool get isGoalCompleted => _gamesPlayedToday >= _dailyGoal;
+  List<int> get weeklyGames => List.unmodifiable(_weeklyGames);
+  List<int> get weeklyFocusMinutes => List.unmodifiable(_weeklyFocus);
+  int get totalWeeklyGames => _weeklyGames.fold(0, (sum, value) => sum + value);
+  int get totalWeeklyFocusMinutes => _weeklyFocus.fold(0, (sum, value) => sum + value);
   int get remainingGames {
     final remaining = _dailyGoal - _gamesPlayedToday;
     if (remaining < 0) {
@@ -45,12 +47,38 @@ class DailyGoalsProvider with ChangeNotifier {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    _streak = prefs.getInt(_kStreakKey) ?? 0;
-    _gamesPlayedToday = prefs.getInt(_kGamesPlayedKey) ?? 0;
-    _focusMinutesToday = prefs.getInt(_kFocusMinutesKey) ?? 0;
-    _dailyGoal = prefs.getInt(_kDailyGoalKey) ?? 3;
+    _streak = prefs.getInt(PrefsKeys.dailyStreak) ?? 0;
+    _gamesPlayedToday = prefs.getInt(PrefsKeys.gamesPlayedToday) ?? 0;
+    _focusMinutesToday = prefs.getInt(PrefsKeys.focusMinutesToday) ?? 0;
+    _dailyGoal = prefs.getInt(PrefsKeys.dailyGoalGames) ?? 3;
     
-    final lastDateString = prefs.getString(_kLastDateKey);
+    final weeklyGamesStrings = prefs.getStringList(PrefsKeys.weeklyGames);
+    if (weeklyGamesStrings != null && weeklyGamesStrings.isNotEmpty) {
+      _weeklyGames
+        ..clear()
+        ..addAll(weeklyGamesStrings.map((value) => int.tryParse(value) ?? 0));
+      while (_weeklyGames.length < 7) {
+        _weeklyGames.insert(0, 0);
+      }
+      while (_weeklyGames.length > 7) {
+        _weeklyGames.removeAt(0);
+      }
+    }
+
+    final weeklyFocusStrings = prefs.getStringList(PrefsKeys.weeklyFocus);
+    if (weeklyFocusStrings != null && weeklyFocusStrings.isNotEmpty) {
+      _weeklyFocus
+        ..clear()
+        ..addAll(weeklyFocusStrings.map((value) => int.tryParse(value) ?? 0));
+      while (_weeklyFocus.length < 7) {
+        _weeklyFocus.insert(0, 0);
+      }
+      while (_weeklyFocus.length > 7) {
+        _weeklyFocus.removeAt(0);
+      }
+    }
+
+    final lastDateString = prefs.getString(PrefsKeys.lastActivityDate);
     if (lastDateString != null) {
       _lastActivityDate = DateTime.parse(lastDateString);
     }
@@ -79,6 +107,12 @@ class DailyGoalsProvider with ChangeNotifier {
     final dayGap = today.difference(lastDate).inDays;
     final metGoalYesterday = _gamesPlayedToday >= _dailyGoal && _dailyGoal > 0;
 
+    _recordDailySnapshot(
+      games: _gamesPlayedToday,
+      focusMinutes: _focusMinutesToday,
+      dayGap: dayGap,
+    );
+
     if (dayGap == 1) {
       if (metGoalYesterday) {
         _goalMetPreviousDay = true;
@@ -100,15 +134,23 @@ class DailyGoalsProvider with ChangeNotifier {
 
   Future<void> _saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_kStreakKey, _streak);
-    await prefs.setInt(_kGamesPlayedKey, _gamesPlayedToday);
-    await prefs.setInt(_kFocusMinutesKey, _focusMinutesToday);
-    await prefs.setInt(_kDailyGoalKey, _dailyGoal);
-    
+    await prefs.setInt(PrefsKeys.dailyStreak, _streak);
+    await prefs.setInt(PrefsKeys.gamesPlayedToday, _gamesPlayedToday);
+    await prefs.setInt(PrefsKeys.focusMinutesToday, _focusMinutesToday);
+    await prefs.setInt(PrefsKeys.dailyGoalGames, _dailyGoal);
+    await prefs.setStringList(
+      PrefsKeys.weeklyGames,
+      _weeklyGames.map((value) => value.toString()).toList(),
+    );
+    await prefs.setStringList(
+      PrefsKeys.weeklyFocus,
+      _weeklyFocus.map((value) => value.toString()).toList(),
+    );
+
     if (_lastActivityDate != null) {
-      await prefs.setString(_kLastDateKey, _lastActivityDate!.toIso8601String());
+      await prefs.setString(PrefsKeys.lastActivityDate, _lastActivityDate!.toIso8601String());
     }
-    
+
     notifyListeners();
   }
 
@@ -177,6 +219,28 @@ class DailyGoalsProvider with ChangeNotifier {
     final now = _clock();
     _lastActivityDate = DateTime(now.year, now.month, now.day);
     await _saveData();
+  }
+
+  void _recordDailySnapshot({required int games, required int focusMinutes, required int dayGap}) {
+    _appendDailyValue(_weeklyGames, games);
+    _appendDailyValue(_weeklyFocus, focusMinutes);
+
+    if (dayGap > 1) {
+      for (var i = 1; i < dayGap; i++) {
+        _appendDailyValue(_weeklyGames, 0);
+        _appendDailyValue(_weeklyFocus, 0);
+      }
+    }
+  }
+
+  void _appendDailyValue(List<int> list, int value) {
+    if (list.length >= 7) {
+      list.removeAt(0);
+    }
+    list.add(value);
+    while (list.length < 7) {
+      list.insert(0, 0);
+    }
   }
 }
 
