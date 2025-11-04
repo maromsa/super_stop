@@ -136,6 +136,10 @@ class DailyGoalsProvider with ChangeNotifier {
 
     _gamesPlayedToday++;
 
+    if (_streak == 0) {
+      _streak = 1;
+    }
+
     if (_dailyGoal > 0 && _gamesPlayedToday == _dailyGoal) {
       if (_goalMetPreviousDay) {
         _streak = _streak == 0 ? 1 : _streak + 1;
