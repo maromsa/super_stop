@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme_provider.dart'; // Import our new ThemeProvider
+import '../theme_provider.dart';
+import '../providers/daily_goals_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -100,6 +101,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
             groupValue: themeProvider.themeMode,
             onChanged: (value) => themeProvider.setThemeMode(value!),
           ),
+
+          // Daily Goals Settings
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'מטרות יומיות',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+          Consumer<DailyGoalsProvider>(
+            builder: (context, goalsProvider, child) {
+              return ListTile(
+                title: Text('מטרה יומית: ${goalsProvider.dailyGoal} משחקים'),
+                subtitle: const Text('מספר המשחקים לשחק בכל יום'),
+                trailing: DropdownButton<int>(
+                  value: goalsProvider.dailyGoal,
+                  items: [1, 2, 3, 4, 5].map((value) {
+                    return DropdownMenuItem<int>(
+                      value: value,
+                      child: Text('$value'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      goalsProvider.setDailyGoal(value);
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

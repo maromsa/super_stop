@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'dart:developer' as developer;
-import 'settings_screen.dart';
-import '../services/achievement_service.dart';
-import 'package:confetti/confetti.dart'; // <-- New import
 
-enum StroopState { notStarted, playing, finished }
-enum StroopMode { sprint, accuracy }
+import '../providers/coin_provider.dart';
+
+// Enum for the game modes, including the new 'versus' mode
+enum StroopMode { sprint, accuracy, versus }
+
+// New, more detailed enum for the multiplayer game flow
+enum StroopState { notStarted, p1Playing, p1Finished, p2Playing, results }
 
 class StroopTestScreen extends StatefulWidget {
   final StroopMode mode;
@@ -25,170 +23,240 @@ class _StroopTestScreenState extends State<StroopTestScreen> {
   StroopState _gameState = StroopState.notStarted;
   Timer? _timer;
   int _timeRemaining = 60;
-  int _score = 0;
-  late ConfettiController _confettiController;
 
-  int _highScore = 0;
-  bool _soundEnabled = true;
-  bool _hapticsEnabled = true;
-  final AudioPlayer _sfxPlayer = AudioPlayer();
-  bool _isNewHighScore = false;
-  late AchievementService _achievementService;
+  // Score variables for both players
+  int _p1Score = 0;
+  int _p2Score = 0;
+  int _currentPlayerScore = 0;
 
   final Map<String, Color> _colors = {
-    'אדום': Colors.red,
-    'ירוק': Colors.green,
-    'כחול': Colors.blue,
-    'צהוב': Colors.yellow,
+    'אדום': Colors.red, 'ירוק': Colors.green, 'כחול': Colors.blue, 'צהוב': Colors.yellow,
   };
-
   late String _currentWord;
   late Color _currentColor;
   late String _correctAnswerName;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _achievementService = Provider.of<AchievementService>(context, listen: false);
-  }
-
-  @override
   void initState() {
     super.initState();
-    _loadSettings();
-    _loadHighScore();
     _generateNewRound();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 1));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _achievementService.markGamePlayed('stroop');
-    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _sfxPlayer.dispose();
-    _confettiController.dispose();
-
     super.dispose();
   }
 
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _soundEnabled = prefs.getBool(SettingsScreen.kSoundEnabled) ?? true;
-        _hapticsEnabled = prefs.getBool(SettingsScreen.kHapticsEnabled) ?? true;
-      });
-    }
-  }
-
-  Future<void> _loadHighScore() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _highScore = prefs.getInt('stroop_high_score') ?? 0;
-      });
-    }
-  }
-
-  void _checkAndSaveHighScore() async {
-    if (_score > _highScore) {
-      _achievementService.unlockAchievement('new_high_score');
-      _isNewHighScore = true;
-      _confettiController.play();
-
-      setState(() => _highScore = _score);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('stroop_high_score', _highScore);
-    } else {
-      _isNewHighScore = false;
-    }
-  }
-
-  void _playSound(String soundFile) {
-    if (!_soundEnabled) return;
-    AudioPlayer().play(AssetSource('sounds/$soundFile'));
-  }
-
-  void _startGame() {
-    _isNewHighScore = false;
+  void _startGame(int player) {
     setState(() {
-      _score = 0;
+      _currentPlayerScore = 0;
       _timeRemaining = 60;
-      _gameState = StroopState.playing;
+      _gameState = (player == 1) ? StroopState.p1Playing : StroopState.p2Playing;
       _generateNewRound();
     });
 
-    if (widget.mode == StroopMode.sprint) {
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!mounted) { timer.cancel(); return; }
-        if (_timeRemaining > 0) {
-          setState(() => _timeRemaining--);
-        } else {
-          timer.cancel();
-          _endGame();
-        }
-      });
-    }
-
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
+      if (!mounted) { timer.cancel(); return; }
       if (_timeRemaining > 0) {
         setState(() => _timeRemaining--);
       } else {
         timer.cancel();
-        _checkAndSaveHighScore();
-        setState(() => _gameState = StroopState.finished);
+        _endRound();
       }
     });
+  }
+
+  void _endRound() {
+    setState(() {
+      if (_gameState == StroopState.p1Playing) {
+        _p1Score = _currentPlayerScore;
+        _gameState = StroopState.p1Finished;
+      } else if (_gameState == StroopState.p2Playing) {
+        _p2Score = _currentPlayerScore;
+        _gameState = StroopState.results;
+      }
+    });
+  }
+
+  void _handleAnswer(String chosenColorName) {
+    if (_gameState != StroopState.p1Playing && _gameState != StroopState.p2Playing) return;
+
+    // Access the CoinProvider from the context
+    final coinProvider = Provider.of<CoinProvider>(context, listen: false);
+
+    if (chosenColorName == _correctAnswerName) {
+      // --- This is the new logic ---
+      coinProvider.addCoins(1); // Award 1 coin for a correct answer
+
+      setState(() => _currentPlayerScore++);
+    }
+    _generateNewRound();
+  }
+
+  void _onMainButtonPressed() {
+    switch (_gameState) {
+      case StroopState.notStarted:
+        _startGame(1);
+        break;
+      case StroopState.p1Finished:
+        _startGame(2);
+        break;
+      case StroopState.results:
+        setState(() {
+          _p1Score = 0;
+          _p2Score = 0;
+          _gameState = StroopState.notStarted;
+        });
+        break;
+      default:
+        break;
+    }
   }
 
   void _generateNewRound() {
     final colorNames = _colors.keys.toList();
     final random = Random();
-
     String word;
     String colorName;
-
     do {
       word = colorNames[random.nextInt(colorNames.length)];
       colorName = colorNames[random.nextInt(colorNames.length)];
     } while (word == colorName);
 
-    setState(() {
-      _currentWord = word;
-      _currentColor = _colors[colorName]!;
-      _correctAnswerName = colorName;
-    });
+    if (mounted) {
+      setState(() {
+        _currentWord = word;
+        _currentColor = _colors[colorName]!;
+        _correctAnswerName = colorName;
+      });
+    }
   }
 
-  void _handleAnswer(String chosenColorName) {
-    if (_gameState != StroopState.playing) return;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('מבחן סטרופ: ראש בראש'),
+        actions: (_gameState == StroopState.p1Playing || _gameState == StroopState.p2Playing)
+            ? [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Text('זמן: $_timeRemaining', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ]
+            : null,
+      ),
+      body: Center(
+        child: _buildGameContent(),
+      ),
+    );
+  }
 
-    if (chosenColorName == _correctAnswerName) {
-      _playSound('success.mp3');
-      if (_hapticsEnabled) HapticFeedback.lightImpact();
-      setState(() => _score++);
+  Widget _buildGameContent() {
+    switch (_gameState) {
+      case StroopState.notStarted:
+        return _buildStartView();
+      case StroopState.p1Playing:
+        return _buildPlayingView(player: 1);
+      case StroopState.p1Finished:
+        return _buildTransitionView();
+      case StroopState.p2Playing:
+        return _buildPlayingView(player: 2);
+      case StroopState.results:
+        return _buildResultsView();
+    }
+  }
 
-      if (_score == 20) {
-        _achievementService.unlockAchievement('stroop_score_20');
-      }
+  Widget _buildStartView() {
+    return _buildMessageView(
+      icon: Icons.people,
+      title: 'מצב ראש בראש',
+      buttonText: 'התחל משחק',
+    );
+  }
+
+  Widget _buildTransitionView() {
+    return _buildMessageView(
+      icon: Icons.switch_account, // <-- This is the corrected icon
+      title: 'תורו של שחקן 2',
+      subtitle: 'שחקן 1 השיג: $_p1Score נקודות',
+      buttonText: 'התחל סיבוב',
+    );
+  }
+
+  Widget _buildResultsView() {
+    String resultText;
+    IconData resultIcon;
+    Color resultColor;
+
+    if (_p1Score > _p2Score) {
+      resultText = 'שחקן 1 מנצח!';
+      resultIcon = Icons.looks_one;
+      resultColor = Colors.amber;
+    } else if (_p2Score > _p1Score) {
+      resultText = 'שחקן 2 מנצח!';
+      resultIcon = Icons.looks_two;
+      resultColor = Colors.lightBlue;
     } else {
-      _playSound('failure.mp3');
-      if (_hapticsEnabled) HapticFeedback.heavyImpact();
+      resultText = 'תיקו!';
+      resultIcon = Icons.handshake;
+      resultColor = Colors.green;
     }
 
-    if (widget.mode == StroopMode.accuracy) {
-      _endGame();
-    } else {
-      _generateNewRound();
-    }
+    return _buildMessageView(
+      icon: resultIcon,
+      iconColor: resultColor,
+      title: resultText,
+      subtitle: 'שחקן 1: $_p1Score\nשחקן 2: $_p2Score',
+      buttonText: 'שחק שוב',
+    );
+  }
+
+  Widget _buildPlayingView({required int player}) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Text(
+          'שחקן $player | ניקוד: $_currentPlayerScore',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          _currentWord,
+          style: TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: _currentColor, shadows: const [Shadow(color: Colors.black26, blurRadius: 5, offset: Offset(2, 2))]),
+        ),
+        Column(
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildButton('אדום'), _buildButton('ירוק')]),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildButton('כחול'), _buildButton('צהוב')]),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildMessageView({required IconData icon, Color? iconColor, required String title, String? subtitle, required String buttonText}) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 80, color: iconColor ?? Colors.blueGrey),
+        const SizedBox(height: 20),
+        Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        if (subtitle != null) ...[
+          const SizedBox(height: 10),
+          Text(subtitle, style: const TextStyle(fontSize: 22), textAlign: TextAlign.center),
+        ],
+        const SizedBox(height: 40),
+        ElevatedButton(
+          onPressed: _onMainButtonPressed,
+          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20)),
+          child: Text(buttonText, style: const TextStyle(fontSize: 24)),
+        ),
+      ],
+    );
   }
 
   Widget _buildButton(String colorName) {
@@ -212,156 +280,6 @@ class _StroopTestScreenState extends State<StroopTestScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _endGame() {
-    _checkAndSaveHighScore();
-    setState(() => _gameState = StroopState.finished);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('מבחן סטרופ'),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                'זמן: $_timeRemaining',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Stack( // <-- New: Use a Stack to layer confetti on top
-        alignment: Alignment.topCenter,
-        children: [
-          // This is our original game content
-          Center(
-            child: _buildGameContent(),
-          ),
-          // --- New: The confetti widget itself ---
-          ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            shouldLoop: false,
-            colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGameContent() {
-    switch (_gameState) {
-      case StroopState.notStarted:
-        return _buildStartView();
-      case StroopState.playing:
-        return _buildPlayingView();
-      case StroopState.finished:
-        return _buildFinishedView();
-    }
-  }
-
-  Widget _buildStartView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.psychology, size: 80, color: Colors.blueGrey),
-        const SizedBox(height: 20),
-        const Text(
-          'לחץ על הצבע, לא על המילה',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 10),
-        Text('שיא אישי: $_highScore'),
-        const SizedBox(height: 40),
-        ElevatedButton(
-          onPressed: _startGame,
-          style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20)
-          ),
-          child: const Text('התחל', style: TextStyle(fontSize: 24)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPlayingView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Text(
-          'ניקוד: $_score',
-          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          _currentWord,
-          style: TextStyle(
-              fontSize: 64,
-              fontWeight: FontWeight.bold,
-              color: _currentColor,
-              shadows: const [Shadow(color: Colors.black26, blurRadius: 5, offset: Offset(2, 2))]
-          ),
-        ),
-        Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [_buildButton('אדום'), _buildButton('ירוק')],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [_buildButton('כחול'), _buildButton('צהוב')],
-            ),
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget _buildFinishedView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_isNewHighScore) ...[
-          const Icon(Icons.star, size: 80, color: Colors.amber),
-          const SizedBox(height: 10),
-          const Text(
-            'שיא חדש!',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber),
-          ),
-        ] else ...[
-          const Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
-          const SizedBox(height: 10),
-          const Text(
-            'הזמן נגמר!',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-        ],
-        const SizedBox(height: 10),
-        Text(
-          'ניקוד סופי: $_score',
-          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          'שיא אישי: $_highScore',
-          style: const TextStyle(fontSize: 20),
-        ),
-        const SizedBox(height: 40),
-        ElevatedButton(
-          onPressed: _startGame,
-          style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20)
-          ),
-          child: const Text('שחק שוב', style: TextStyle(fontSize: 24)),
-        ),
-      ],
     );
   }
 }

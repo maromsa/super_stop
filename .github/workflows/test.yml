@@ -1,0 +1,66 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main, master, develop ]
+  push:
+    branches: [ main, master, develop, test ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter installation
+        run: flutter doctor -v
+
+      - name: Run Flutter analyze
+        run: |
+          flutter analyze --no-fatal-infos > analyze_output.txt 2>&1 || true
+          if grep -q "error •" analyze_output.txt; then
+            echo "❌ Found errors in code analysis"
+            cat analyze_output.txt
+            exit 1
+          else
+            echo "✅ Code analysis passed (warnings/infos only)"
+            cat analyze_output.txt
+          fi
+
+      - name: Run unit tests
+        run: flutter test test/
+
+      - name: Run widget tests
+        run: flutter test test/widgets/
+
+      - name: Run provider tests
+        run: flutter test test/providers/
+
+      - name: Run service tests
+        run: flutter test test/services/
+
+      - name: Check test coverage
+        run: |
+          flutter test --coverage
+          if [ -f coverage/lcov.info ]; then
+            echo "Coverage report generated"
+          fi
+

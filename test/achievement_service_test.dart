@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:super_stop/models/achievement.dart'; // Make sure this path is correct for your project
-import 'package:super_stop/services/achievement_service.dart'; // Make sure this path is correct
+import 'package:super_stop/services/achievement_service.dart';
 
 void main() {
   group('AchievementService', () {
