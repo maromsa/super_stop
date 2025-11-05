@@ -45,20 +45,22 @@ jobs:
             exit 1
           fi
 
-          if [ -n "$APPETIZE_PUBLIC_KEY" ]; then
-            echo "Updating existing Appetize app ($APPETIZE_PUBLIC_KEY)" >> "$GITHUB_STEP_SUMMARY"
-            RESPONSE=$(curl --fail-with-body -sS \
-              -X PUT "https://uploader.appetize.io/v1/apps/$APPETIZE_PUBLIC_KEY" \
-              -H "Authorization: Bearer $APPETIZE_API_TOKEN" \
-              -F "file=@$APK_PATH" \
-              -F "platform=android")
-          else
-            echo "Creating new Appetize app" >> "$GITHUB_STEP_SUMMARY"
-            RESPONSE=$(curl --fail-with-body -sS \
-              -X POST https://uploader.appetize.io/v1/apps \
-              -H "Authorization: Bearer $APPETIZE_API_TOKEN" \
-              -F "file=@$APK_PATH" \
-              -F "platform=android")
+            if [ -n "$APPETIZE_PUBLIC_KEY" ]; then
+              echo "Updating existing Appetize app ($APPETIZE_PUBLIC_KEY)" >> "$GITHUB_STEP_SUMMARY"
+              RESPONSE=$(curl --fail-with-body -sS \
+                -X PUT "https://api.appetize.io/v1/apps/$APPETIZE_PUBLIC_KEY" \
+                -H "X-API-KEY: $APPETIZE_API_TOKEN" \
+                -H "Accept: application/json" \
+                -F "file=@$APK_PATH" \
+                -F "platform=android")
+            else
+              echo "Creating new Appetize app" >> "$GITHUB_STEP_SUMMARY"
+              RESPONSE=$(curl --fail-with-body -sS \
+                -X POST https://api.appetize.io/v1/apps \
+                -H "X-API-KEY: $APPETIZE_API_TOKEN" \
+                -H "Accept: application/json" \
+                -F "file=@$APK_PATH" \
+                -F "platform=android")
           fi
 
             printf '%s' "$RESPONSE" > appetize_response.json
@@ -72,9 +74,69 @@ jobs:
             with open(path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
 
-            public_key = data.get("publicKey") or data.get("data", {}).get("publicKey")
-            public_url = data.get("publicUrl") or data.get("data", {}).get("publicUrl")
-            private_url = data.get("privateUrl") or data.get("data", {}).get("privateUrl")
+            def find_value(payload, *paths):
+                for path in paths:
+                    value = payload
+                    for key in path:
+                        if isinstance(value, dict):
+                            value = value.get(key)
+                        elif isinstance(value, list):
+                            next_value = None
+                            for item in value:
+                                if isinstance(item, dict) and key in item:
+                                    next_value = item.get(key)
+                                    break
+                            value = next_value
+                        else:
+                            value = None
+                            break
+                    if value not in (None, ""):
+                        return value
+                return None
+
+            public_key = find_value(
+                data,
+                ("publicKey",),
+                ("public_key",),
+                ("data", "publicKey"),
+                ("data", "public_key"),
+                ("data", "attributes", "publicKey"),
+                ("data", "attributes", "public_key"),
+                ("data", "app", "publicKey"),
+                ("data", "app", "public_key"),
+            )
+
+            public_url = find_value(
+                data,
+                ("publicUrl",),
+                ("public_url",),
+                ("links", "public"),
+                ("data", "publicUrl"),
+                ("data", "public_url"),
+                ("data", "links", "public"),
+                ("data", "attributes", "publicUrl"),
+                ("data", "attributes", "public_url"),
+                ("data", "attributes", "links", "public"),
+                ("data", "app", "publicUrl"),
+                ("data", "app", "public_url"),
+                ("data", "app", "links", "public"),
+            )
+
+            private_url = find_value(
+                data,
+                ("privateUrl",),
+                ("private_url",),
+                ("links", "private"),
+                ("data", "privateUrl"),
+                ("data", "private_url"),
+                ("data", "links", "private"),
+                ("data", "attributes", "privateUrl"),
+                ("data", "attributes", "private_url"),
+                ("data", "attributes", "links", "private"),
+                ("data", "app", "privateUrl"),
+                ("data", "app", "private_url"),
+                ("data", "app", "links", "private"),
+            )
 
             if not public_key:
                 print("::error ::Could not find public key in Appetize response")
