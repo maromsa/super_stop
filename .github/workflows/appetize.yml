@@ -1,0 +1,104 @@
+name: Upload to Appetize
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+      APPETIZE_PUBLIC_KEY: ${{ secrets.APPETIZE_PUBLIC_KEY }}
+
+    steps:
+      - name: Verify Appetize token is configured
+        run: |
+          if [ -z "$APPETIZE_API_TOKEN" ]; then
+            echo "::error ::The APPETIZE_API_TOKEN secret is not set."
+            echo "Configure APPETIZE_API_TOKEN in the repository secrets to enable uploads." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+
+      - name: Upload build to Appetize
+        env:
+          APK_PATH: build/app/outputs/flutter-apk/app-debug.apk
+        run: |
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error ::APK not found at $APK_PATH"
+            exit 1
+          fi
+
+          if [ -n "$APPETIZE_PUBLIC_KEY" ]; then
+            echo "Updating existing Appetize app ($APPETIZE_PUBLIC_KEY)" >> "$GITHUB_STEP_SUMMARY"
+            RESPONSE=$(curl --fail-with-body -sS \
+              -X PUT "https://uploader.appetize.io/v1/apps/$APPETIZE_PUBLIC_KEY" \
+              -H "Authorization: Bearer $APPETIZE_API_TOKEN" \
+              -F "file=@$APK_PATH" \
+              -F "platform=android")
+          else
+            echo "Creating new Appetize app" >> "$GITHUB_STEP_SUMMARY"
+            RESPONSE=$(curl --fail-with-body -sS \
+              -X POST https://uploader.appetize.io/v1/apps \
+              -H "Authorization: Bearer $APPETIZE_API_TOKEN" \
+              -F "file=@$APK_PATH" \
+              -F "platform=android")
+          fi
+
+          printf '%s' "$RESPONSE" > appetize_response.json
+
+          python - <<'PY'
+import json
+import os
+import sys
+
+path = "appetize_response.json"
+with open(path, "r", encoding="utf-8") as fh:
+    data = json.load(fh)
+
+public_key = data.get("publicKey") or data.get("data", {}).get("publicKey")
+public_url = data.get("publicUrl") or data.get("data", {}).get("publicUrl")
+private_url = data.get("privateUrl") or data.get("data", {}).get("privateUrl")
+
+if not public_key:
+    print("::error ::Could not find public key in Appetize response")
+    print(json.dumps(data, indent=2))
+    sys.exit(1)
+
+summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+if summary_path:
+    with open(summary_path, "a", encoding="utf-8") as summary:
+        summary.write("### Appetize upload\n")
+        summary.write(f"- Public key: {public_key}\n")
+        summary.write(f"- Public URL: {public_url or 'N/A'}\n")
+        summary.write(f"- Private URL: {private_url or 'N/A'}\n")
+
+output_path = os.environ.get("GITHUB_OUTPUT")
+if output_path:
+    with open(output_path, "a", encoding="utf-8") as output:
+        output.write(f"public_key={public_key}\n")
+        if public_url:
+            output.write(f"public_url={public_url}\n")
+        if private_url:
+            output.write(f"private_url={private_url}\n")
+PY
+
+          if [ -z "$APPETIZE_PUBLIC_KEY" ]; then
+            echo "::notice ::Save the reported Appetize public key as APPETIZE_PUBLIC_KEY for future updates."
+          fi
