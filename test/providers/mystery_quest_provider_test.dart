@@ -23,7 +23,6 @@ void main() {
     final provider = MysteryQuestProvider(clock: () => DateTime(2025, 2, 5));
     final coinProvider = CoinProvider();
     await Future<void>.delayed(Duration.zero);
-    await Future<void>.delayed(Duration.zero);
 
     final moodQuest = provider.activeQuests.firstWhere((q) => q.type == QuestType.mood);
     for (var i = 0; i < moodQuest.goal; i++) {

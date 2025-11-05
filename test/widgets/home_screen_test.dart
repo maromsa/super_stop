@@ -51,28 +51,28 @@ void main() {
         );
       }
 
-    testWidgets('should display home screen with all key elements', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+      testWidgets('should display home screen with all key elements', (WidgetTester tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
 
-      // Check for main title
-      expect(find.text('בחר אתגר'), findsOneWidget);
+        // Check for main title
+        expect(find.text('בחר אתגר'), findsOneWidget);
 
-      // Check for game buttons
-      expect(find.text('משחק איפוק'), findsOneWidget);
-      expect(find.text('מבחן תגובה'), findsOneWidget);
-      expect(find.text('מבחן סטרופ'), findsOneWidget);
+        // Check for game buttons
+        expect(find.text('משחק איפוק'), findsOneWidget);
+        expect(find.text('מבחן תגובה'), findsOneWidget);
+        expect(find.text('מבחן סטרופ'), findsOneWidget);
 
-      // Check for additional tools
-      expect(find.text('כלים נוספים'), findsOneWidget);
-      expect(find.text('תרגיל נשימה'), findsOneWidget);
-      expect(find.text('טיימר ריכוז'), findsOneWidget);
-      expect(find.text('לוח התקדמות'), findsOneWidget);
+        // Check for additional tools
+        expect(find.text('כלים נוספים'), findsOneWidget);
+        expect(find.text('תרגיל נשימה'), findsOneWidget);
+        expect(find.text('טיימר ריכוז'), findsOneWidget);
+        expect(find.text('לוח התקדמות'), findsOneWidget);
 
-      // Check for settings and achievements buttons
-      expect(find.text('הישגים'), findsOneWidget);
-      expect(find.text('הגדרות'), findsOneWidget);
-    });
+        // Check for settings and achievements buttons
+        expect(find.text('הישגים'), findsWidgets);
+        expect(find.text('הגדרות'), findsOneWidget);
+      });
 
     testWidgets('should display level and stats information', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());

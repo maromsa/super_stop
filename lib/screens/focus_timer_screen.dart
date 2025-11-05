@@ -13,6 +13,7 @@ import '../providers/mini_game_provider.dart';
 import '../providers/mystery_quest_provider.dart';
 import '../providers/virtual_companion_provider.dart';
 import '../services/achievement_service.dart';
+import '../widgets/achievement_popup.dart';
 import '../widgets/ambient_mix_editor.dart';
 
 class FocusTimerScreen extends StatelessWidget {
@@ -118,12 +119,21 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
   Future<void> _handleFocusCompletion(FocusTimerController controller) async {
     final coinProvider = context.read<CoinProvider>();
     final goalsProvider = context.read<DailyGoalsProvider>();
+    final communityProvider = context.read<CommunityChallengeProvider>();
+    final questProvider = context.read<MysteryQuestProvider>();
+    final companion = context.read<VirtualCompanionProvider>();
 
     if (controller.focusRewardCoins > 0) {
       coinProvider.addCoins(controller.focusRewardCoins);
     }
 
     await goalsProvider.completeFocusSession(controller.selectedFocusMinutes);
+    communityProvider.registerFocusContribution(minutes: controller.selectedFocusMinutes);
+    final completedQuests = questProvider.registerFocusMinutes(controller.selectedFocusMinutes);
+    companion.registerQuestCelebration('סשן ריכוז');
+
+    if (!mounted) return;
+    _handleQuestRewards(completedQuests);
   }
 
   Widget _buildSetupView(FocusTimerController controller, AppLocalizations l10n) {
@@ -411,26 +421,6 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
     final asset = ambientMix.resolveTrackForEvent(event);
     _audioPlayer.stop();
     _audioPlayer.play(AssetSource('sounds/$asset'));
-  }
-
-  Future<void> _handleFocusCompletion(FocusTimerController controller) async {
-    final coinProvider = context.read<CoinProvider>();
-    final goalsProvider = context.read<DailyGoalsProvider>();
-    final communityProvider = context.read<CommunityChallengeProvider>();
-    final questProvider = context.read<MysteryQuestProvider>();
-    final companion = context.read<VirtualCompanionProvider>();
-
-    if (controller.focusRewardCoins > 0) {
-      coinProvider.addCoins(controller.focusRewardCoins);
-    }
-
-    await goalsProvider.completeFocusSession(controller.selectedFocusMinutes);
-    communityProvider.registerFocusContribution(minutes: controller.selectedFocusMinutes);
-    final completedQuests = questProvider.registerFocusMinutes(controller.selectedFocusMinutes);
-    companion.registerQuestCelebration('סשן ריכוז');
-
-    if (!mounted) return;
-    _handleQuestRewards(completedQuests);
   }
 
   void _handleQuestRewards(List<MysteryQuest> quests) {

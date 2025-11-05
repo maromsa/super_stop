@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../providers/coin_provider.dart';
+import '../providers/community_challenge_provider.dart';
 import '../providers/daily_goals_provider.dart';
 import '../router/app_routes.dart';
 

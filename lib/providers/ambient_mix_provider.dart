@@ -179,6 +179,17 @@ class AmbientMixProvider with ChangeNotifier {
         completeTrack: 'whistle.mp3',
       );
       _presets[calmPreset.name] = calmPreset;
+      _selectedPreset ??= calmPreset.name;
+    }
+
+    _selectedPreset ??= _presets.keys.isEmpty ? null : _presets.keys.first;
+    if (_selectedPreset != null) {
+      final preset = _presets[_selectedPreset!];
+      if (preset != null) {
+        _focusTrack = preset.focusTrack;
+        _breakTrack = preset.breakTrack;
+        _completeTrack = preset.completeTrack;
+      }
     }
 
     _isLoaded = true;
