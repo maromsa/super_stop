@@ -156,7 +156,7 @@ class _AmbientMixEditorState extends State<AmbientMixEditor> {
           items: tracks
               .map((track) => DropdownMenuItem<String>(
                     value: track,
-                    child: Text(track.replaceAll('.mp3', '')),
+                    child: Text(_trackLabel(track)),
                   ))
               .toList(),
           onChanged: onChanged,
@@ -167,5 +167,20 @@ class _AmbientMixEditorState extends State<AmbientMixEditor> {
         ),
       ],
     );
+  }
+
+  String _trackLabel(String track) {
+    switch (track) {
+      case 'tick.mp3':
+        return 'טיק טק מרגיע';
+      case 'success.mp3':
+        return 'פעמון הצלחה';
+      case 'whistle.mp3':
+        return 'שריקה שמחה';
+      case 'failure.mp3':
+        return 'צפצוף תזכורת';
+      default:
+        return track.replaceAll('.mp3', '');
+    }
   }
 }

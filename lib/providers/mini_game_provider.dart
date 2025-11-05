@@ -46,36 +46,36 @@ class MiniGameProvider with ChangeNotifier {
   final DateTime Function() _clock;
 
   static final List<MiniGame> _dailyMiniGames = List<MiniGame>.unmodifiable([
-    const MiniGame(
-      id: 'stretch_shuffle',
-      title: 'Stretch Shuffle',
-      description: 'Do a quick stretch routine: reach up high, touch your toes, roll your shoulders.',
-      rewardCoins: 3,
-    ),
-    const MiniGame(
-      id: 'gratitude_flip',
-      title: 'Gratitude Flip',
-      description: 'List three positive moments from today in under a minute.',
-      rewardCoins: 4,
-    ),
-    const MiniGame(
-      id: 'desk_dash',
-      title: 'Desk Dash',
-      description: 'Race to tidy five items around you before the break ends.',
-      rewardCoins: 5,
-    ),
-    const MiniGame(
-      id: 'pattern_tap',
-      title: 'Pattern Tap',
-      description: 'Tap out the rhythm 1-2-3-2-1 on your desk and repeat five times.',
-      rewardCoins: 3,
-    ),
-    const MiniGame(
-      id: 'power_pose',
-      title: 'Power Pose',
-      description: 'Hold a superhero pose for 30 seconds while breathing slowly.',
-      rewardCoins: 4,
-    ),
+      const MiniGame(
+        id: 'stretch_shuffle',
+        title: 'ריקוד מתיחות',
+        description: 'בצעו מתיחות מהירות: הרימו ידיים למעלה, נגעו באצבעות הרגליים וסובבו כתפיים.',
+        rewardCoins: 3,
+      ),
+      const MiniGame(
+        id: 'gratitude_flip',
+        title: 'רגעי תודה',
+        description: 'כתבו שלושה רגעים חיוביים מהיום בפחות מדקה.',
+        rewardCoins: 4,
+      ),
+      const MiniGame(
+        id: 'desk_dash',
+        title: 'מרוץ השולחן',
+        description: 'מהרו לסדר חמישה חפצים סביבכם לפני שההפסקה מסתיימת.',
+        rewardCoins: 5,
+      ),
+      const MiniGame(
+        id: 'pattern_tap',
+        title: 'קצב התבנית',
+        description: 'תיפחו על השולחן בקצב 1-2-3-2-1 וחזרו על כך חמש פעמים.',
+        rewardCoins: 3,
+      ),
+      const MiniGame(
+        id: 'power_pose',
+        title: 'תנוחת הכוח',
+        description: 'החזיקו תנוחת גיבור על במשך 30 שניות תוך נשימה איטית.',
+        rewardCoins: 4,
+      ),
   ]);
 
   MiniGame? _current;

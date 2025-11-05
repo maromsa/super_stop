@@ -28,7 +28,7 @@ class CoinProvider with ChangeNotifier {
 
   void addCoins(int amount) {
     if (amount < 0) {
-      throw ArgumentError.value(amount, 'amount', 'Cannot add a negative amount of coins.');
+      throw ArgumentError.value(amount, 'amount', 'לא ניתן להוסיף מספר שלילי של מטבעות.');
     }
     _coins += amount;
     _saveCoins();
@@ -37,7 +37,7 @@ class CoinProvider with ChangeNotifier {
 
   int addCoinsWithMultiplier(int baseAmount, {double multiplier = 1.0}) {
     if (multiplier < 0) {
-      throw ArgumentError.value(multiplier, 'multiplier', 'Multiplier must be positive.');
+      throw ArgumentError.value(multiplier, 'multiplier', 'המקדם חייב להיות חיובי.');
     }
     final coinsToAdd = (baseAmount * multiplier).round();
     addCoins(coinsToAdd);
@@ -61,7 +61,7 @@ class CoinProvider with ChangeNotifier {
 
   Future<void> setCoins(int amount) async {
     if (amount < 0) {
-      throw ArgumentError.value(amount, 'amount', 'Coins cannot be negative.');
+      throw ArgumentError.value(amount, 'amount', 'מספר המטבעות לא יכול להיות שלילי.');
     }
     _coins = amount;
     await _saveCoins();

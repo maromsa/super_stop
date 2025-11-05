@@ -7,6 +7,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/coin_provider.dart';
 import '../utils/prefs_keys.dart';
 
+class _ChallengeTexts {
+  const _ChallengeTexts(this.title, this.description);
+
+  final String title;
+  final String description;
+}
+
+_ChallengeTexts _localizedChallengeTexts(String id) {
+  switch (id) {
+    case 'challenge_arcade':
+      return const _ChallengeTexts(
+        'ברית הארקייד',
+        'שחקו יחד 500 סבבי מיני כדי לפתוח עיצובים צבעוניים במשחקים.',
+      );
+    case 'challenge_focus':
+      return const _ChallengeTexts(
+        'גל הריכוז',
+        'צברו יחד 1500 דקות ריכוז כדי לפתוח אפקטים עמוקים.',
+      );
+    case 'challenge_mood':
+      return const _ChallengeTexts(
+        'פסיפס מצב הרוח',
+        'שתפו 250 רישומי מצב רוח כדי לפתוח ערכת נושא זוהרת.',
+      );
+    default:
+      return const _ChallengeTexts(
+        'אתגר קהילתי',
+        'השלימו משימה משותפת כדי לזכות בבונוסים.',
+      );
+  }
+}
+
 class CommunityChallenge {
   CommunityChallenge({
     required this.id,
@@ -60,10 +92,12 @@ class CommunityChallenge {
       };
 
   factory CommunityChallenge.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String;
+    final texts = _localizedChallengeTexts(id);
     return CommunityChallenge(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
+      id: id,
+      title: texts.title,
+      description: texts.description,
       target: json['target'] as int,
       rewardCoins: json['rewardCoins'] as int,
       progress: json['progress'] as int? ?? 0,
@@ -177,32 +211,48 @@ class CommunityChallengeProvider with ChangeNotifier {
     if (_challenges.isNotEmpty) return;
     final now = _clock();
     final baselineFactor = (now.day % 5) + 3;
-    _challenges['challenge_arcade'] = CommunityChallenge(
-      id: 'challenge_arcade',
-      title: 'Arcade Alliance',
-      description: 'Collectively play 500 mini rounds to unlock rainbow game skins.',
-      target: 500,
-      rewardCoins: 25,
-      boostCost: 5,
-      baseline: 120 * baselineFactor,
+
+    CommunityChallenge _buildChallenge(
+      String id,
+      int target,
+      int rewardCoins,
+      int boostCost,
+      int baseline,
+    ) {
+      final texts = _localizedChallengeTexts(id);
+      return CommunityChallenge(
+        id: id,
+        title: texts.title,
+        description: texts.description,
+        target: target,
+        rewardCoins: rewardCoins,
+        boostCost: boostCost,
+        baseline: baseline,
+      );
+    }
+
+    _challenges['challenge_arcade'] = _buildChallenge(
+      'challenge_arcade',
+      500,
+      25,
+      5,
+      120 * baselineFactor,
     );
-    _challenges['challenge_focus'] = CommunityChallenge(
-      id: 'challenge_focus',
-      title: 'Focus Wave',
-      description: 'Stack 1500 focus minutes as a community to unlock deep focus visuals.',
-      target: 1500,
-      rewardCoins: 30,
-      boostCost: 8,
-      baseline: 280 * baselineFactor,
+
+    _challenges['challenge_focus'] = _buildChallenge(
+      'challenge_focus',
+      1500,
+      30,
+      8,
+      280 * baselineFactor,
     );
-    _challenges['challenge_mood'] = CommunityChallenge(
-      id: 'challenge_mood',
-      title: 'Mood Mosaic',
-      description: 'Share 250 mood reflections to unlock the aurora theme.',
-      target: 250,
-      rewardCoins: 20,
-      boostCost: 6,
-      baseline: 60 * baselineFactor,
+
+    _challenges['challenge_mood'] = _buildChallenge(
+      'challenge_mood',
+      250,
+      20,
+      6,
+      60 * baselineFactor,
     );
   }
 

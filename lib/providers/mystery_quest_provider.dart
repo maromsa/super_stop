@@ -9,6 +9,36 @@ import '../utils/prefs_keys.dart';
 
 enum QuestType { mood, focusMinutes, games }
 
+class _QuestTexts {
+  const _QuestTexts(this.title, this.description);
+
+  final String title;
+  final String description;
+}
+
+_QuestTexts _resolveQuestTexts(QuestType type, int goal, {String? gameId}) {
+  switch (type) {
+    case QuestType.mood:
+      final description = goal == 1
+          ? 'סמנו בדיקת מצב רוח אחת היום.'
+          : 'סמנו $goal בדיקות מצב רוח היום.';
+      return _QuestTexts('מצפן מצבי רוח', description);
+    case QuestType.focusMinutes:
+      return _QuestTexts('גל ריכוז אישי', 'צברו $goal דקות ריכוז.');
+    case QuestType.games:
+      if (gameId == 'impulse') {
+        final text = goal == 1 ? 'פעם אחת' : '$goal פעמים';
+        return _QuestTexts('אלופי האיפוק', 'שחקו באתגר האיפוק $text.');
+      }
+      if (gameId == 'reaction') {
+        final text = goal == 1 ? 'פעם אחת' : '$goal פעמים';
+        return _QuestTexts('מרוץ התגובה', 'התמודדו עם מבחן התגובה $text.');
+      }
+      final text = goal == 1 ? 'סבב אחד' : '$goal סבבי משחק שונים';
+      return _QuestTexts('מיקס משחקים יומי', 'שחקו $text.');
+  }
+}
+
 class MysteryQuest {
   MysteryQuest({
     required this.id,
@@ -49,15 +79,19 @@ class MysteryQuest {
       };
 
   factory MysteryQuest.fromJson(Map<String, dynamic> json) {
+    final type = QuestType.values.firstWhere((value) => value.name == json['type']);
+    final goal = json['goal'] as int;
+    final gameId = json['gameId'] as String?;
+    final texts = _resolveQuestTexts(type, goal, gameId: gameId);
     return MysteryQuest(
       id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      type: QuestType.values.firstWhere((value) => value.name == json['type']),
-      goal: json['goal'] as int,
+      title: texts.title,
+      description: texts.description,
+      type: type,
+      goal: goal,
       progress: json['progress'] as int? ?? 0,
       rewardCoins: json['rewardCoins'] as int? ?? 0,
-      gameId: json['gameId'] as String?,
+      gameId: gameId,
       claimed: json['claimed'] as bool? ?? false,
     );
   }
@@ -124,7 +158,7 @@ class MysteryQuestProvider with ChangeNotifier {
   MysteryQuest? claimReward(String questId, CoinProvider coinProvider) {
     final quest = _activeQuests.firstWhere(
       (q) => q.id == questId,
-      orElse: () => throw ArgumentError.value(questId, 'questId', 'Quest not found'),
+      orElse: () => throw ArgumentError.value(questId, 'questId', 'המשימה לא נמצאה'),
     );
     if (!quest.isClaimable) {
       return null;
@@ -163,40 +197,44 @@ class MysteryQuestProvider with ChangeNotifier {
     final gameGoal = 2 + (seed % 2); // 2 or 3 games
 
     final quests = <MysteryQuest>[
-      MysteryQuest(
-        id: 'mood_$seed',
-        title: 'Mood Mirror',
-        description: 'Log $moodGoal mood ${moodGoal == 1 ? 'check-in' : 'check-ins'} today.',
-        type: QuestType.mood,
-        goal: moodGoal,
-        rewardCoins: 5 + variant,
-      ),
-      MysteryQuest(
-        id: 'focus_$seed',
-        title: 'Laser Focus',
-        description: 'Accumulate $focusGoal focus minutes.',
-        type: QuestType.focusMinutes,
-        goal: focusGoal,
-        rewardCoins: 6 + variant,
-      ),
+      () {
+        final texts = _resolveQuestTexts(QuestType.mood, moodGoal);
+        return MysteryQuest(
+          id: 'mood_$seed',
+          title: texts.title,
+          description: texts.description,
+          type: QuestType.mood,
+          goal: moodGoal,
+          rewardCoins: 5 + variant,
+        );
+      }(),
+      () {
+        final texts = _resolveQuestTexts(QuestType.focusMinutes, focusGoal);
+        return MysteryQuest(
+          id: 'focus_$seed',
+          title: texts.title,
+          description: texts.description,
+          type: QuestType.focusMinutes,
+          goal: focusGoal,
+          rewardCoins: 6 + variant,
+        );
+      }(),
     ];
 
+    final gameId = variant == 0
+        ? null
+        : variant == 1
+            ? 'impulse'
+            : 'reaction';
+    final gameTexts = _resolveQuestTexts(QuestType.games, gameGoal, gameId: gameId);
     final gameQuest = MysteryQuest(
       id: 'game_$seed',
-      title: 'Arcade Shuffle',
-      description: variant == 0
-          ? 'Play $gameGoal different game rounds.'
-          : variant == 1
-              ? 'Beat the impulse game $gameGoal time${gameGoal == 1 ? '' : 's'}.'
-              : 'Take on the reaction challenge $gameGoal time${gameGoal == 1 ? '' : 's'}.',
+      title: gameTexts.title,
+      description: gameTexts.description,
       type: QuestType.games,
       goal: gameGoal,
       rewardCoins: 4 + variant,
-      gameId: variant == 0
-          ? null
-          : variant == 1
-              ? 'impulse'
-              : 'reaction',
+      gameId: gameId,
     );
     quests.add(gameQuest);
     return quests;
