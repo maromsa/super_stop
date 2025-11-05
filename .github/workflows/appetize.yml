@@ -61,43 +61,43 @@ jobs:
               -F "platform=android")
           fi
 
-          printf '%s' "$RESPONSE" > appetize_response.json
+            printf '%s' "$RESPONSE" > appetize_response.json
 
-          python - <<'PY'
-import json
-import os
-import sys
+            python - <<'PY'
+            import json
+            import os
+            import sys
 
-path = "appetize_response.json"
-with open(path, "r", encoding="utf-8") as fh:
-    data = json.load(fh)
+            path = "appetize_response.json"
+            with open(path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
 
-public_key = data.get("publicKey") or data.get("data", {}).get("publicKey")
-public_url = data.get("publicUrl") or data.get("data", {}).get("publicUrl")
-private_url = data.get("privateUrl") or data.get("data", {}).get("privateUrl")
+            public_key = data.get("publicKey") or data.get("data", {}).get("publicKey")
+            public_url = data.get("publicUrl") or data.get("data", {}).get("publicUrl")
+            private_url = data.get("privateUrl") or data.get("data", {}).get("privateUrl")
 
-if not public_key:
-    print("::error ::Could not find public key in Appetize response")
-    print(json.dumps(data, indent=2))
-    sys.exit(1)
+            if not public_key:
+                print("::error ::Could not find public key in Appetize response")
+                print(json.dumps(data, indent=2))
+                sys.exit(1)
 
-summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-if summary_path:
-    with open(summary_path, "a", encoding="utf-8") as summary:
-        summary.write("### Appetize upload\n")
-        summary.write(f"- Public key: {public_key}\n")
-        summary.write(f"- Public URL: {public_url or 'N/A'}\n")
-        summary.write(f"- Private URL: {private_url or 'N/A'}\n")
+            summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+            if summary_path:
+                with open(summary_path, "a", encoding="utf-8") as summary:
+                    summary.write("### Appetize upload\n")
+                    summary.write(f"- Public key: {public_key}\n")
+                    summary.write(f"- Public URL: {public_url or 'N/A'}\n")
+                    summary.write(f"- Private URL: {private_url or 'N/A'}\n")
 
-output_path = os.environ.get("GITHUB_OUTPUT")
-if output_path:
-    with open(output_path, "a", encoding="utf-8") as output:
-        output.write(f"public_key={public_key}\n")
-        if public_url:
-            output.write(f"public_url={public_url}\n")
-        if private_url:
-            output.write(f"private_url={private_url}\n")
-PY
+            output_path = os.environ.get("GITHUB_OUTPUT")
+            if output_path:
+                with open(output_path, "a", encoding="utf-8") as output:
+                    output.write(f"public_key={public_key}\n")
+                    if public_url:
+                        output.write(f"public_url={public_url}\n")
+                    if private_url:
+                        output.write(f"private_url={private_url}\n")
+            PY
 
           if [ -z "$APPETIZE_PUBLIC_KEY" ]; then
             echo "::notice ::Save the reported Appetize public key as APPETIZE_PUBLIC_KEY for future updates."
