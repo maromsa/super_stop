@@ -24,4 +24,5 @@ class PrefsKeys {
   static const String focusSessionsCompleted = 'focus_sessions_completed';
   static const String focusRewardCoins = 'focus_reward_coins';
   static const String focusRewardExperience = 'focus_reward_experience';
+  static const String focusAutoStartBreak = 'focus_auto_start_break';
 }
