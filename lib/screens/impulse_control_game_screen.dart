@@ -219,7 +219,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
       // Create a new player for each sound to avoid conflicts
       await AudioPlayer().play(AssetSource('sounds/$soundFile'));
     } catch (e) {
-      developer.log('!!! ERROR playing sound "$soundFile": $e', name: 'GameLog');
+      developer.log('שגיאה בהשמעת הצליל "$soundFile": $e', name: 'GameLog');
     }
   }
 

@@ -202,7 +202,7 @@ class DailyGoalsProvider with ChangeNotifier {
 
   Future<void> setDailyGoal(int goal) async {
     if (goal < 0) {
-      throw ArgumentError.value(goal, 'goal', 'Daily goal cannot be negative.');
+      throw ArgumentError.value(goal, 'goal', 'מטרה יומית לא יכולה להיות שלילית.');
     }
     _dailyGoal = goal;
     _goalMetPreviousDay = false;

@@ -60,7 +60,7 @@ class LevelProvider with ChangeNotifier {
 
   Future<bool> addExperienceWithBonus(int baseAmount, {double multiplier = 1.0}) {
     if (multiplier < 0) {
-      throw ArgumentError.value(multiplier, 'multiplier', 'Multiplier must be positive.');
+      throw ArgumentError.value(multiplier, 'multiplier', 'המקדם חייב להיות חיובי.');
     }
     final boostedAmount = (baseAmount * multiplier).round();
     return addExperience(boostedAmount);

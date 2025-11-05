@@ -31,12 +31,12 @@ class VirtualCompanionProvider with ChangeNotifier {
     _hydrate();
   }
 
-  static const String _name = 'Nova';
+  static const String _name = 'נובה';
   static const List<String> _supportiveMessages = [
-    'I lined up your next streak bonus—keep the rhythm going!',
-    'Your focus fireflies are glowing extra bright today.',
-    'I saved you the shiniest coin for your next session.',
-    'Let’s unlock another badge together before sunset!',
+    'סידרתי לך את בונוס הרצף הבא - המשך בקצב!',
+    'גחלילי הריכוז שלך זוהרים במיוחד היום.',
+    'שמתי בצד את המטבע הכי נוצץ למפגש הבא שלך.',
+    'בוא נפתח יחד תג נוסף לפני השקיעה!',
   ];
 
   final DateTime Function() _clock;
@@ -99,8 +99,8 @@ class VirtualCompanionProvider with ChangeNotifier {
     _ensureDailyDecay();
     _bondLevel = (_bondLevel + 8).clamp(0, 100);
     _moodScore = (_moodScore + 12).clamp(0, 150);
-    _cachedHeadline = 'Quest complete sparkle!';
-    _cachedMessage = 'That quest "$questId" just powered up our bond.';
+    _cachedHeadline = 'משימה הושלמה בניצוץ!';
+    _cachedMessage = 'המשימה "$questId" חיזקה את הקשר בינינו.';
     _lastInteraction = _clock();
     _persist();
     notifyListeners();
@@ -124,24 +124,24 @@ class VirtualCompanionProvider with ChangeNotifier {
 
   String _buildHeadline() {
     if (_bondLevel >= 80) {
-      return 'Supercharged sidekick!';
+      return 'שותפת העל שלך בטורבו!';
     } else if (_bondLevel >= 50) {
-      return 'Co-pilot ready to roll';
+      return 'הקופילוטית שלך מוכנה לזנק';
     } else if (_bondLevel >= 25) {
-      return 'Let’s spark the streak';
+      return 'בוא נדליק את הרצף';
     }
-    return 'I missed our missions';
+    return 'התגעגעתי למשימות שלנו';
   }
 
   String _buildMessage() {
     if (_moodScore >= 120) {
-      return 'All systems buzzing—want to chase a legendary badge next?';
+      return 'כל המערכות רועשות - רוצים לתפוס תג אגדי עכשיו?';
     } else if (_moodScore >= 60) {
-      return 'Your progress energy is contagious. Just one more focus burst!';
+      return 'אנרגיית ההתקדמות שלך מדבקת. עוד פרץ ריכוז אחד!';
     } else if (_moodScore >= 20) {
-      return 'I stacked a fresh mystery quest to keep things spicy.';
+      return 'הכנתי משימת מסתורין חדשה כדי לשמור על עניין.';
     }
-    return 'Let’s kick off with a mini-game during your next break.';
+    return 'בוא נתחיל עם מיני-משחק בהפסקה הבאה שלך.';
   }
 
   String _resolveEmoji() {

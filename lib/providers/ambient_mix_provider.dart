@@ -96,7 +96,7 @@ class AmbientMixProvider with ChangeNotifier {
 
   Future<void> savePreset(String name) async {
     if (name.trim().isEmpty) {
-      throw ArgumentError('Preset name cannot be empty');
+      throw ArgumentError('שם הפריסט לא יכול להיות ריק');
     }
     final preset = AmbientMixPreset(
       name: name.trim(),
@@ -173,7 +173,7 @@ class AmbientMixProvider with ChangeNotifier {
     // Seed a default preset if nothing exists.
     if (_presets.isEmpty) {
       const calmPreset = AmbientMixPreset(
-        name: 'Calm Breeze',
+        name: 'בריזה רגועה',
         focusTrack: _defaultFocus,
         breakTrack: 'success.mp3',
         completeTrack: 'whistle.mp3',
