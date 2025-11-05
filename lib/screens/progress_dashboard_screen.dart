@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../providers/coin_provider.dart';
+import '../providers/community_challenge_provider.dart';
 import '../providers/daily_goals_provider.dart';
 import '../router/app_routes.dart';
 
@@ -33,6 +34,8 @@ class ProgressDashboardScreen extends StatelessWidget {
             _buildDailyGoalCard(goalsProvider, l10n),
             const SizedBox(height: 16),
             _buildStatsCard(goalsProvider, coinProvider, l10n),
+              const SizedBox(height: 16),
+              _buildCommunityChallengeBoard(context, coinProvider, l10n),
             const SizedBox(height: 16),
             _buildWeeklyChart(weeklyGames, l10n),
             const SizedBox(height: 16),
@@ -163,6 +166,63 @@ class ProgressDashboardScreen extends StatelessWidget {
     );
   }
 
+    Widget _buildCommunityChallengeBoard(
+      BuildContext context,
+      CoinProvider coinProvider,
+      AppLocalizations l10n,
+    ) {
+      return Consumer<CommunityChallengeProvider>(
+        builder: (context, challengeProvider, _) {
+          if (!challengeProvider.isLoaded) {
+            return const Card(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            );
+          }
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            challengeProvider.tickPassiveProgress();
+          });
+
+          final challenges = challengeProvider.challenges;
+          return Card(
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.groups, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text(
+                        'לוח אתגרי הקהילה',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...challenges.map(
+                    (challenge) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _CommunityChallengeTile(
+                        challenge: challenge,
+                        coinProvider: coinProvider,
+                        challengeProvider: challengeProvider,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
   Widget _buildWeeklyChart(List<int> weeklyGames, AppLocalizations l10n) {
     return Card(
       elevation: 4,
@@ -256,6 +316,97 @@ class ProgressDashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CommunityChallengeTile extends StatelessWidget {
+  const _CommunityChallengeTile({
+    required this.challenge,
+    required this.coinProvider,
+    required this.challengeProvider,
+  });
+
+  final CommunityChallenge challenge;
+  final CoinProvider coinProvider;
+  final CommunityChallengeProvider challengeProvider;
+
+  @override
+  Widget build(BuildContext context) {
+    final completionPercent = (challenge.completion * 100).clamp(0, 100).toStringAsFixed(0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          challenge.title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          challenge.description,
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 12),
+        LinearProgressIndicator(
+          value: challenge.completion,
+          minHeight: 8,
+          backgroundColor: Colors.blue.shade50,
+          valueColor: AlwaysStoppedAnimation<Color>(challenge.isCompleted ? Colors.green : Colors.blue),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('$completionPercent%'),
+            Text('התרומה שלך: ${challenge.personalContribution}'),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: coinProvider.hasEnoughCoins(challenge.boostCost)
+                    ? () {
+                        final success = challengeProvider.contributeCoins(
+                          challenge.id,
+                          coinProvider,
+                          coins: challenge.boostCost,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? 'הוספת תרומה של ${challenge.boostCost} 🪙'
+                                  : 'אין מספיק מטבעות לתרומה',
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
+                icon: const Icon(Icons.volunteer_activism),
+                label: Text('תרום ${challenge.boostCost} 🪙'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (challenge.rewardAvailable)
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () {
+                    final claimed = challengeProvider.claimReward(challenge.id, coinProvider);
+                    if (claimed) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('אספת ${challenge.rewardCoins} 🪙 מהקהילה')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.redeem),
+                  label: Text('אסוף ${challenge.rewardCoins} 🪙'),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:super_stop/l10n/app_localizations.dart';
 import 'package:super_stop/providers/coin_provider.dart';
+import 'package:super_stop/providers/community_challenge_provider.dart';
 import 'package:super_stop/providers/daily_goals_provider.dart';
 import 'package:super_stop/providers/level_provider.dart';
 import 'package:super_stop/providers/mood_journal_provider.dart';
+import 'package:super_stop/providers/mystery_quest_provider.dart';
+import 'package:super_stop/providers/virtual_companion_provider.dart';
 import 'package:super_stop/screens/home_screen.dart';
 import 'package:super_stop/services/achievement_service.dart';
 import 'package:super_stop/theme_provider.dart';
@@ -25,7 +28,17 @@ void main() {
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => AchievementService()),
             ChangeNotifierProvider(create: (_) => CoinProvider()),
+            ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
+            ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
             ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
+            ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
+              create: (_) => VirtualCompanionProvider(),
+              update: (_, goals, achievements, companion) {
+                companion ??= VirtualCompanionProvider();
+                companion.updateFrom(goals, achievements);
+                return companion;
+              },
+            ),
             ChangeNotifierProvider(create: (_) => LevelProvider()),
             ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
           ],
@@ -38,28 +51,28 @@ void main() {
         );
       }
 
-    testWidgets('should display home screen with all key elements', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+      testWidgets('should display home screen with all key elements', (WidgetTester tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
 
-      // Check for main title
-      expect(find.text('בחר אתגר'), findsOneWidget);
+        // Check for main title
+        expect(find.text('בחר אתגר'), findsOneWidget);
 
-      // Check for game buttons
-      expect(find.text('משחק איפוק'), findsOneWidget);
-      expect(find.text('מבחן תגובה'), findsOneWidget);
-      expect(find.text('מבחן סטרופ'), findsOneWidget);
+        // Check for game buttons
+        expect(find.text('משחק איפוק'), findsOneWidget);
+        expect(find.text('מבחן תגובה'), findsOneWidget);
+        expect(find.text('מבחן סטרופ'), findsOneWidget);
 
-      // Check for additional tools
-      expect(find.text('כלים נוספים'), findsOneWidget);
-      expect(find.text('תרגיל נשימה'), findsOneWidget);
-      expect(find.text('טיימר ריכוז'), findsOneWidget);
-      expect(find.text('לוח התקדמות'), findsOneWidget);
+        // Check for additional tools
+        expect(find.text('כלים נוספים'), findsOneWidget);
+        expect(find.text('תרגיל נשימה'), findsOneWidget);
+        expect(find.text('טיימר ריכוז'), findsOneWidget);
+        expect(find.text('לוח התקדמות'), findsOneWidget);
 
-      // Check for settings and achievements buttons
-      expect(find.text('הישגים'), findsOneWidget);
-      expect(find.text('הגדרות'), findsOneWidget);
-    });
+        // Check for settings and achievements buttons
+        expect(find.text('הישגים'), findsWidgets);
+        expect(find.text('הגדרות'), findsOneWidget);
+      });
 
     testWidgets('should display level and stats information', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());

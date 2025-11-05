@@ -16,6 +16,9 @@ class AchievementService with ChangeNotifier {
     Achievement(id: 'focus_master', icon: Icons.school, emoji: '🎓', color: Colors.indigo),
     Achievement(id: 'coin_collector', icon: Icons.monetization_on, emoji: '💰', color: Colors.amber),
     Achievement(id: 'breathing_guru', icon: Icons.air, emoji: '🧘', color: Colors.teal),
+    Achievement(id: 'mini_badge_bronze', icon: Icons.style, emoji: '🥉', color: Colors.brown),
+    Achievement(id: 'mini_badge_silver', icon: Icons.style, emoji: '🥈', color: Colors.blueGrey),
+    Achievement(id: 'mini_badge_gold', icon: Icons.style, emoji: '🥇', color: Colors.orangeAccent),
   ];
 
   List<Achievement> get achievements => _achievements;

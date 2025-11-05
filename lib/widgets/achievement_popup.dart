@@ -7,6 +7,7 @@ class AchievementPopup extends StatefulWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onDismiss;
+  final String? badgeLabel;
 
   const AchievementPopup({
     super.key,
@@ -15,6 +16,7 @@ class AchievementPopup extends StatefulWidget {
     required this.icon,
     required this.color,
     required this.onDismiss,
+    this.badgeLabel,
   });
 
   @override
@@ -114,6 +116,19 @@ class _AchievementPopupState extends State<AchievementPopup>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (widget.badgeLabel != null) ...[
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Chip(
+                                backgroundColor: Colors.black.withOpacity(0.2),
+                                label: Text(
+                                  widget.badgeLabel!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           const Text(
                             '🎉 הישג חדש! 🎉',
                             style: TextStyle(

@@ -25,4 +25,28 @@ class PrefsKeys {
   static const String focusRewardCoins = 'focus_reward_coins';
   static const String focusRewardExperience = 'focus_reward_experience';
   static const String focusAutoStartBreak = 'focus_auto_start_break';
+
+  static const String miniGameStreak = 'mini_game_streak';
+  static const String miniGameLastCompleted = 'mini_game_last_completed';
+  static const String miniGameCompletedToday = 'mini_game_completed_today';
+  static const String miniGameCurrentId = 'mini_game_current_id';
+
+  static const String ambientMixFocusTrack = 'ambient_mix_focus_track';
+  static const String ambientMixBreakTrack = 'ambient_mix_break_track';
+  static const String ambientMixCompleteTrack = 'ambient_mix_complete_track';
+  static const String ambientMixPresets = 'ambient_mix_presets';
+  static const String ambientMixSelectedPreset = 'ambient_mix_selected_preset';
+
+  static const String mysteryQuestState = 'mystery_quest_state';
+  static const String mysteryQuestGeneratedOn = 'mystery_quest_generated_on';
+
+  static const String companionBondLevel = 'companion_bond_level';
+  static const String companionMoodScore = 'companion_mood_score';
+  static const String companionBadges = 'companion_badges';
+  static const String companionLastInteraction = 'companion_last_interaction';
+
+  static const String communityChallengeState = 'community_challenge_state';
+
+  static const String moodThemeCurrent = 'mood_theme_current';
+  static const String moodThemeUnlocks = 'mood_theme_unlocks';
 }
