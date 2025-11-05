@@ -100,9 +100,12 @@ void main() {
       await controller.updateBreakMinutes(1);
       await controller.startFocus();
 
-      // Allow focus completion and auto-start transition.
-      await Future.delayed(const Duration(milliseconds: 40));
-      expect(controller.phase, equals(FocusTimerPhase.completed));
+      await Future.delayed(const Duration(milliseconds: 20));
+      expect(controller.completionEvents, equals(1));
+      expect(
+        controller.phase,
+        anyOf(equals(FocusTimerPhase.completed), equals(FocusTimerPhase.breakTime)),
+      );
 
       await Future.delayed(const Duration(milliseconds: 40));
       expect(controller.phase, equals(FocusTimerPhase.breakTime));
