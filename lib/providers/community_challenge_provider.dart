@@ -42,25 +42,29 @@ _ChallengeTexts _localizedChallengeTexts(String id) {
 class CommunityChallenge {
   CommunityChallenge({
     required this.id,
-    required this.title,
-    required this.description,
-    required this.target,
-    required this.rewardCoins,
+    required int target,
+    required int rewardCoins,
     int? progress,
     int? personalContribution,
     bool? claimed,
     this.boostCost = 5,
     int? baseline,
-  })  : progress = progress ?? (baseline ?? 0),
+  })  : target = target,
+        rewardCoins = rewardCoins,
+        progress = progress ?? (baseline ?? 0),
         personalContribution = personalContribution ?? 0,
-        claimed = claimed ?? false;
+        claimed = claimed ?? false {
+    final texts = _localizedChallengeTexts(id);
+    title = texts.title;
+    description = texts.description;
+  }
 
   final String id;
-  final String title;
-  final String description;
   final int target;
   final int rewardCoins;
   final int boostCost;
+  late final String title;
+  late final String description;
   int progress;
   int personalContribution;
   bool claimed;
@@ -92,12 +96,8 @@ class CommunityChallenge {
       };
 
   factory CommunityChallenge.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String;
-    final texts = _localizedChallengeTexts(id);
     return CommunityChallenge(
-      id: id,
-      title: texts.title,
-      description: texts.description,
+      id: json['id'] as String,
       target: json['target'] as int,
       rewardCoins: json['rewardCoins'] as int,
       progress: json['progress'] as int? ?? 0,
@@ -219,11 +219,8 @@ class CommunityChallengeProvider with ChangeNotifier {
       int boostCost,
       int baseline,
     ) {
-      final texts = _localizedChallengeTexts(id);
       return CommunityChallenge(
         id: id,
-        title: texts.title,
-        description: texts.description,
         target: target,
         rewardCoins: rewardCoins,
         boostCost: boostCost,
@@ -272,8 +269,27 @@ class CommunityChallengeProvider with ChangeNotifier {
     }
 
     _ensureSeeded();
+    _localizeExistingChallenges();
     _isLoaded = true;
     notifyListeners();
+  }
+
+  void _localizeExistingChallenges() {
+    if (_challenges.isEmpty) {
+      return;
+    }
+    for (final entry in _challenges.entries.toList()) {
+      final challenge = entry.value;
+      _challenges[entry.key] = CommunityChallenge(
+        id: challenge.id,
+        target: challenge.target,
+        rewardCoins: challenge.rewardCoins,
+        progress: challenge.progress,
+        personalContribution: challenge.personalContribution,
+        claimed: challenge.claimed,
+        boostCost: challenge.boostCost,
+      );
+    }
   }
 
   Future<void> _persist() async {

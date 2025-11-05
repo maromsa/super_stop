@@ -50,6 +50,7 @@ class VirtualCompanionProvider with ChangeNotifier {
 
   CompanionPresentation get presentation {
     _ensureDailyDecay();
+    _sanitizeCachedTexts();
     final emoji = _resolveEmoji();
     final headline = _cachedHeadline ?? _buildHeadline();
     final message = _cachedMessage ?? _buildMessage();
@@ -120,6 +121,16 @@ class VirtualCompanionProvider with ChangeNotifier {
     _cachedHeadline = null;
     _cachedMessage = null;
     _persist();
+  }
+
+  void _sanitizeCachedTexts() {
+    bool _hasLatin(String value) => RegExp(r'[A-Za-z]').hasMatch(value);
+    if (_cachedHeadline != null && _hasLatin(_cachedHeadline!)) {
+      _cachedHeadline = null;
+    }
+    if (_cachedMessage != null && _hasLatin(_cachedMessage!)) {
+      _cachedMessage = null;
+    }
   }
 
   String _buildHeadline() {

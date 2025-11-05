@@ -42,24 +42,29 @@ _QuestTexts _resolveQuestTexts(QuestType type, int goal, {String? gameId}) {
 class MysteryQuest {
   MysteryQuest({
     required this.id,
-    required this.title,
-    required this.description,
-    required this.type,
-    required this.goal,
-    required this.rewardCoins,
+    required QuestType type,
+    required int goal,
+    required int rewardCoins,
     this.gameId,
     int? progress,
     bool? claimed,
-  })  : progress = progress ?? 0,
-        claimed = claimed ?? false;
+  })  : type = type,
+        goal = goal,
+        rewardCoins = rewardCoins,
+        progress = progress ?? 0,
+        claimed = claimed ?? false {
+    final texts = _resolveQuestTexts(type, goal, gameId: gameId);
+    title = texts.title;
+    description = texts.description;
+  }
 
   final String id;
-  final String title;
-  final String description;
   final QuestType type;
   final int goal;
   final String? gameId;
   final int rewardCoins;
+  late final String title;
+  late final String description;
   int progress;
   bool claimed;
 
@@ -81,17 +86,13 @@ class MysteryQuest {
   factory MysteryQuest.fromJson(Map<String, dynamic> json) {
     final type = QuestType.values.firstWhere((value) => value.name == json['type']);
     final goal = json['goal'] as int;
-    final gameId = json['gameId'] as String?;
-    final texts = _resolveQuestTexts(type, goal, gameId: gameId);
     return MysteryQuest(
       id: json['id'] as String,
-      title: texts.title,
-      description: texts.description,
       type: type,
       goal: goal,
-      progress: json['progress'] as int? ?? 0,
       rewardCoins: json['rewardCoins'] as int? ?? 0,
-      gameId: gameId,
+      gameId: json['gameId'] as String?,
+      progress: json['progress'] as int? ?? 0,
       claimed: json['claimed'] as bool? ?? false,
     );
   }
@@ -186,6 +187,7 @@ class MysteryQuestProvider with ChangeNotifier {
       _persist();
       notifyListeners();
     }
+    _localizeActiveQuests();
   }
 
   List<MysteryQuest> _generateQuests(int year, int month, int day, int seedSource) {
@@ -197,28 +199,18 @@ class MysteryQuestProvider with ChangeNotifier {
     final gameGoal = 2 + (seed % 2); // 2 or 3 games
 
     final quests = <MysteryQuest>[
-      () {
-        final texts = _resolveQuestTexts(QuestType.mood, moodGoal);
-        return MysteryQuest(
-          id: 'mood_$seed',
-          title: texts.title,
-          description: texts.description,
-          type: QuestType.mood,
-          goal: moodGoal,
-          rewardCoins: 5 + variant,
-        );
-      }(),
-      () {
-        final texts = _resolveQuestTexts(QuestType.focusMinutes, focusGoal);
-        return MysteryQuest(
-          id: 'focus_$seed',
-          title: texts.title,
-          description: texts.description,
-          type: QuestType.focusMinutes,
-          goal: focusGoal,
-          rewardCoins: 6 + variant,
-        );
-      }(),
+      MysteryQuest(
+        id: 'mood_$seed',
+        type: QuestType.mood,
+        goal: moodGoal,
+        rewardCoins: 5 + variant,
+      ),
+      MysteryQuest(
+        id: 'focus_$seed',
+        type: QuestType.focusMinutes,
+        goal: focusGoal,
+        rewardCoins: 6 + variant,
+      ),
     ];
 
     final gameId = variant == 0
@@ -226,11 +218,8 @@ class MysteryQuestProvider with ChangeNotifier {
         : variant == 1
             ? 'impulse'
             : 'reaction';
-    final gameTexts = _resolveQuestTexts(QuestType.games, gameGoal, gameId: gameId);
     final gameQuest = MysteryQuest(
       id: 'game_$seed',
-      title: gameTexts.title,
-      description: gameTexts.description,
       type: QuestType.games,
       goal: gameGoal,
       rewardCoins: 4 + variant,
@@ -261,6 +250,25 @@ class MysteryQuestProvider with ChangeNotifier {
     _ensureDailyQuests();
     _isLoaded = true;
     notifyListeners();
+  }
+
+  void _localizeActiveQuests() {
+    if (_activeQuests.isEmpty) {
+      return;
+    }
+    _activeQuests = _activeQuests
+        .map(
+          (quest) => MysteryQuest(
+            id: quest.id,
+            type: quest.type,
+            goal: quest.goal,
+            rewardCoins: quest.rewardCoins,
+            gameId: quest.gameId,
+            progress: quest.progress,
+            claimed: quest.claimed,
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<void> _persist() async {
