@@ -168,6 +168,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final themeDetails = context.watch<ThemeProvider>().moodDetails;
+    final iconColor = Theme.of(context).appBarTheme.iconTheme?.color ??
+        Theme.of(context).iconTheme.color ??
+        Colors.white;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.homeTitle),
@@ -189,7 +193,14 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: Text(
+              '¿',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: iconColor,
+              ),
+            ),
             tooltip: l10n.homeInstructionsTooltip,
             onPressed: () => _showInstructionsDialog(context),
           ),
