@@ -4,7 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../models/mood_entry.dart';
+import '../providers/community_challenge_provider.dart';
 import '../providers/mood_journal_provider.dart';
+import '../providers/mystery_quest_provider.dart';
+import '../providers/virtual_companion_provider.dart';
+import '../providers/coin_provider.dart';
+import '../theme_provider.dart';
 import '../widgets/mood_selector.dart';
 
 class MoodCheckInScreen extends StatelessWidget {
@@ -29,22 +34,41 @@ class MoodCheckInScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    l10n.moodCheckInPrompt,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  MoodSelector(
-                    onMoodSelected: (Mood mood) async {
-                      await journal.recordMood(mood);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.moodCheckInThanks)),
-                        );
-                      }
-                    },
-                  ),
+                    Text(
+                      l10n.moodCheckInPrompt,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 24),
+                    MoodSelector(
+                      onMoodSelected: (Mood mood) async {
+                        await journal.recordMood(mood);
+                        context.read<ThemeProvider>().applyMoodTheme(mood);
+                        context.read<CommunityChallengeProvider>().registerMoodContribution();
+                        final quests = context.read<MysteryQuestProvider>().registerMoodEntry(mood);
+                        context.read<VirtualCompanionProvider>().registerQuestCelebration('בדיקת מצב רוח');
+                        if (context.mounted) {
+                          for (final quest in quests) {
+                            if (quest.isClaimable) {
+                              final claimed = context.read<MysteryQuestProvider>().claimReward(
+                                quest.id,
+                                context.read<CoinProvider>(),
+                              );
+                              if (claimed != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('${quest.title} +${quest.rewardCoins} 🪙')),
+                                );
+                              }
+                            }
+                          }
+                        }
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.moodCheckInThanks)),
+                          );
+                        }
+                      },
+                    ),
                   const SizedBox(height: 32),
                   if (latest != null) ...[
                     _MoodSummaryCard(entry: latest, l10n: l10n),

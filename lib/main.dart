@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/coin_provider.dart';
+import 'providers/community_challenge_provider.dart';
 import 'providers/daily_goals_provider.dart';
 import 'providers/level_provider.dart';
 import 'providers/mood_journal_provider.dart';
+import 'providers/mystery_quest_provider.dart';
+import 'providers/virtual_companion_provider.dart';
 import 'router/app_router.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
@@ -21,7 +24,17 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AchievementService()),
         ChangeNotifierProvider(create: (_) => CoinProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
+        ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
         ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
+        ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
+          create: (_) => VirtualCompanionProvider(),
+          update: (_, goals, achievements, companion) {
+            companion ??= VirtualCompanionProvider();
+            companion.updateFrom(goals, achievements);
+            return companion;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => LevelProvider()),
         ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
       ],
@@ -44,18 +57,8 @@ class MyApp extends StatelessWidget {
           onGenerateTitle: (context) => AppLocalizations.of(context)!.homeTitle,
           onGenerateRoute: AppRouter.onGenerateRoute,
           themeMode: themeProvider.themeMode,
-          theme: ThemeData(
-            brightness: Brightness.light,
-            primarySwatch: Colors.blue,
-            fontFamily: 'Alef',
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            primarySwatch: Colors.blue,
-            fontFamily: 'Alef',
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
           home: const _AppLaunchDecider(),
         );
       },
