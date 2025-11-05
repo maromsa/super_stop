@@ -255,28 +255,28 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Progress Bar
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: levelProvider.experienceProgress,
-                          minHeight: 20,
-                          backgroundColor: Colors.white.withOpacity(0.3),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          '${levelProvider.experience} / ${levelProvider.experienceForNextLevel} XP',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.9),
+                        const SizedBox(height: 16),
+                        // Progress Bar
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: levelProvider.experienceProgress,
+                            minHeight: 20,
+                            backgroundColor: Colors.white.withOpacity(0.3),
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            l10n.homeExperienceProgress(levelProvider.experience, levelProvider.experienceForNextLevel),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                       // Stats Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,

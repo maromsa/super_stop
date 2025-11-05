@@ -36,7 +36,7 @@
     "moodAnxious": "לחוץ",
     "moodCalm": "רגוע",
     "moodExcited": "נרגש",
-    "homeTitle": "Super Stop",
+    "homeTitle": "סופר סטופ",
     "homeChooseChallenge": "בחר אתגר",
     "homeGameImpulse": "משחק איפוק",
     "homeGameReaction": "מבחן תגובה",
@@ -68,6 +68,13 @@
     "homeStatStreak": "רצף",
     "homeStatGoal": "מטרה",
     "homeStatCoins": "מטבעות",
+    "homeExperienceProgress": "{current} מתוך {goal} נקודות ניסיון",
+    "@homeExperienceProgress": {
+        "placeholders": {
+            "current": {},
+            "goal": {}
+        }
+    },
     "focusAppBarTitle": "טיימר ריכוז",
     "focusSetupTitle": "בחרו זמן ריכוז",
     "focusFocusMinutesLabel": "זמן ריכוז (דקות)",
@@ -126,5 +133,30 @@
     "achievementTrifectaTitle": "אלוף השלישייה",
     "achievementTrifectaDesc": "שחק בכל שלושת המשחקים.",
     "achievementRecordBreakerTitle": "שובר שיאים",
-    "achievementRecordBreakerDesc": "קבע שיא חדש בכל משחק שהוא."
+    "achievementRecordBreakerDesc": "קבע שיא חדש בכל משחק שהוא.",
+    "achievementUnknown": "הישג חדש!",
+    "impulseGameOverTitle": "המשחק הסתיים!",
+    "impulseFinalScore": "ניקוד סופי: {score}",
+    "@impulseFinalScore": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "impulseReturnHome": "חזרה למסך הבית",
+    "impulseComboLabel": "x{combo} רצף!",
+    "@impulseComboLabel": {
+        "placeholders": {
+            "combo": {}
+        }
+    },
+    "reactionTestCompleteTitle": "הבדיקה הסתיימה!",
+    "reactionTestCompleteSummary": "הטוב ביותר: {best} מילישניות\nהחלש ביותר: {worst} מילישניות\nממוצע: {average} מילישניות\n\nלחצו כדי לשחק שוב",
+    "@reactionTestCompleteSummary": {
+        "placeholders": {
+            "best": {},
+            "worst": {},
+            "average": {}
+        }
+    },
+    "routerNotFound": "העמוד לא נמצא"
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:super_stop/l10n/app_localizations.dart';
+
 import '../models/achievement.dart';
 import '../services/achievement_service.dart';
 
@@ -19,8 +21,8 @@ class AchievementsScreen extends StatelessWidget {
       case 'streak_30': return '🔥 חודש ברצף';
       case 'focus_master': return '🎓 מאסטר ריכוז';
       case 'coin_collector': return '💰 אספן מטבעות';
-      case 'breathing_guru': return '🧘 מאסטר נשימה';
-      default: return 'Unknown Achievement';
+        case 'breathing_guru': return '🧘 מאסטר נשימה';
+        default: return AppLocalizations.of(context)!.achievementUnknown;
     }
   }
 

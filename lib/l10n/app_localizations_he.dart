@@ -50,11 +50,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get homeStatGoal => 'מטרה';
 
-  @override
-  String get homeStatCoins => 'מטבעות';
+    @override
+    String get homeStatCoins => 'מטבעות';
 
-  @override
-  String get homeTitle => 'Super Stop';
+    @override
+    String homeExperienceProgress(int current, int goal) => '$current מתוך $goal נקודות ניסיון';
+
+    @override
+    String get homeTitle => 'סופר סטופ';
 
   @override
   String get homeChooseChallenge => 'בחר אתגר';
@@ -195,7 +198,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get progressAchievementsTitle => 'הישגים';
 
   @override
-  String get progressAchievementsButton => 'צפה בכל ההישגים';
+    String get progressAchievementsButton => 'צפה בכל ההישגים';
+
+    @override
+    String get achievementUnknown => 'הישג חדש!';
 
   @override
   String get moodCheckInTitle => 'בדיקת מצב רוח';
@@ -279,5 +285,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get onboardingNext => 'הבא';
 
   @override
-  String get onboardingMoodPrompt => 'בחרו מצב רוח כדי להתחיל';
+    String get onboardingMoodPrompt => 'בחרו מצב רוח כדי להתחיל';
+
+    @override
+    String get impulseGameOverTitle => 'המשחק הסתיים!';
+
+    @override
+    String impulseFinalScore(int score) => 'ניקוד סופי: $score';
+
+    @override
+    String get impulseReturnHome => 'חזרה למסך הבית';
+
+    @override
+    String impulseComboLabel(int combo) => 'x$combo רצף!';
+
+    @override
+    String get reactionTestCompleteTitle => 'הבדיקה הסתיימה!';
+
+    @override
+    String reactionTestCompleteSummary(int best, int worst, int average) => 'הטוב ביותר: $best מילישניות\nהחלש ביותר: $worst מילישניות\nממוצע: $average מילישניות\n\nלחצו כדי לשחק שוב';
+
+    @override
+    String get routerNotFound => 'העמוד לא נמצא';
 }

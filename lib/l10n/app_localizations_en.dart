@@ -54,6 +54,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeStatCoins => 'Coins';
 
   @override
+  String homeExperienceProgress(int current, int goal) => '$current / $goal XP';
+
+  @override
   String get homeTitle => 'Super Stop';
 
   @override
@@ -198,6 +201,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressAchievementsButton => 'View all achievements';
 
   @override
+  String get achievementUnknown => 'New Achievement!';
+
+  @override
   String get moodCheckInTitle => 'Mood Check-in';
 
   @override
@@ -280,4 +286,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingMoodPrompt => 'Choose a mood to get started';
+
+  @override
+  String get impulseGameOverTitle => 'Game Over';
+
+  @override
+  String impulseFinalScore(int score) => 'Final Score: $score';
+
+  @override
+  String get impulseReturnHome => 'Return Home';
+
+  @override
+  String impulseComboLabel(int combo) => 'x$combo COMBO!';
+
+  @override
+  String get reactionTestCompleteTitle => 'Test Complete!';
+
+  @override
+  String reactionTestCompleteSummary(int best, int worst, int average) => 'Best: $best ms\nWorst: $worst ms\nAverage: $average ms\n\nTap to play again';
+
+  @override
+  String get routerNotFound => 'Route not found';
 }

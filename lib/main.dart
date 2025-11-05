@@ -38,19 +38,22 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Super Stop',
+          locale: const Locale('he'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.homeTitle,
           onGenerateRoute: AppRouter.onGenerateRoute,
           themeMode: themeProvider.themeMode,
           theme: ThemeData(
             brightness: Brightness.light,
             primarySwatch: Colors.blue,
+            fontFamily: 'Alef',
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             primarySwatch: Colors.blue,
+            fontFamily: 'Alef',
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
           home: const _AppLaunchDecider(),

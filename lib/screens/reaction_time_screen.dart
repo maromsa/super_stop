@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:confetti/confetti.dart'; // <-- New import
+import 'package:super_stop/l10n/app_localizations.dart';
+
 import 'settings_screen.dart';
 import '../services/achievement_service.dart';
-import 'package:confetti/confetti.dart'; // <-- New import
 
 enum ReactionState { waitingToStart, waitingForGreen, readyToTap, finished, tooEarly, testFinished }
 enum ReactionMode { classic, fiveRoundTest }
@@ -202,7 +204,7 @@ class _ReactionTimeScreenState extends State<ReactionTimeScreen> {
       case ReactionState.tooEarly:
         return const _GameMessage(icon: Icons.warning, title: 'מוקדם מדי!', subtitle: 'לחץ כדי לנסות שוב');
       case ReactionState.finished:
-        return _GameMessage(icon: Icons.bolt, title: '$_lastResult ms', subtitle: 'לחץ לסיבוב הבא');
+        return _GameMessage(icon: Icons.bolt, title: '$_lastResult מילישניות', subtitle: 'לחץ לסיבוב הבא');
       case ReactionState.testFinished:
         return _buildTestFinishedView();
     }
@@ -212,18 +214,19 @@ class _ReactionTimeScreenState extends State<ReactionTimeScreen> {
     final best = _recentScores.reduce(min);
     final worst = _recentScores.reduce(max);
     final avg = _averageScore;
+    final l10n = AppLocalizations.of(context)!;
 
     return _GameMessage(
       icon: Icons.checklist,
-      title: 'Test Complete!',
-      subtitle: 'Best: $best ms\nWorst: $worst ms\nAverage: $avg ms\n\nTap to play again',
+      title: l10n.reactionTestCompleteTitle,
+      subtitle: l10n.reactionTestCompleteSummary(best, worst, avg),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final highScoreText = _highScore == 0 ? '--' : '$_highScore ms';
-    final averageScoreText = _averageScore == 0 && _recentScores.isEmpty ? '--' : '$_averageScore ms';
+    final highScoreText = _highScore == 0 ? '--' : '$_highScore מילישניות';
+    final averageScoreText = _averageScore == 0 && _recentScores.isEmpty ? '--' : '$_averageScore מילישניות';
 
     return GestureDetector(
       onTap: _onTapScreen,
