@@ -68,6 +68,13 @@
     "homeStatStreak": "Streak",
     "homeStatGoal": "Goal",
     "homeStatCoins": "Coins",
+    "homeExperienceProgress": "{current} / {goal} XP",
+    "@homeExperienceProgress": {
+        "placeholders": {
+            "current": {},
+            "goal": {}
+        }
+    },
     "focusAppBarTitle": "Focus Timer",
     "focusSetupTitle": "Choose focus time",
     "focusFocusMinutesLabel": "Focus time (minutes)",
@@ -126,5 +133,30 @@
     "achievementTrifectaTitle": "Trifecta",
     "achievementTrifectaDesc": "Play all three games at least once.",
     "achievementRecordBreakerTitle": "Record Breaker",
-    "achievementRecordBreakerDesc": "Set a new high score in any game."
+    "achievementRecordBreakerDesc": "Set a new high score in any game.",
+    "achievementUnknown": "New Achievement!",
+    "impulseGameOverTitle": "Game Over",
+    "impulseFinalScore": "Final Score: {score}",
+    "@impulseFinalScore": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "impulseReturnHome": "Return Home",
+    "impulseComboLabel": "x{combo} COMBO!",
+    "@impulseComboLabel": {
+        "placeholders": {
+            "combo": {}
+        }
+    },
+    "reactionTestCompleteTitle": "Test Complete!",
+    "reactionTestCompleteSummary": "Best: {best} ms\nWorst: {worst} ms\nAverage: {average} ms\n\nTap to play again",
+    "@reactionTestCompleteSummary": {
+        "placeholders": {
+            "best": {},
+            "worst": {},
+            "average": {}
+        }
+    },
+    "routerNotFound": "Route not found"
 }

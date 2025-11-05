@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../screens/achievements_screen.dart';
 import '../screens/breathing_exercise_screen.dart';
@@ -37,22 +38,27 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => ImpulseControlGameScreen(mode: mode),
         );
-      case AppRoutes.reaction:
-        final mode = settings.arguments as ReactionMode? ?? ReactionMode.classic;
-        return MaterialPageRoute(
-          builder: (_) => ReactionTimeScreen(mode: mode),
-        );
-      case AppRoutes.stroop:
-        final mode = settings.arguments as StroopMode? ?? StroopMode.sprint;
-        return MaterialPageRoute(
-          builder: (_) => StroopTestScreen(mode: mode),
-        );
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Route not found')),
-          ),
-        );
+        case AppRoutes.reaction:
+          final mode = settings.arguments as ReactionMode? ?? ReactionMode.classic;
+          return MaterialPageRoute(
+            builder: (_) => ReactionTimeScreen(mode: mode),
+          );
+        case AppRoutes.stroop:
+          final mode = settings.arguments as StroopMode? ?? StroopMode.sprint;
+          return MaterialPageRoute(
+            builder: (_) => StroopTestScreen(mode: mode),
+          );
+        default:
+          return MaterialPageRoute(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return Scaffold(
+                body: Center(
+                  child: Text(l10n?.routerNotFound ?? 'העמוד לא נמצא'),
+                ),
+              );
+            },
+          );
     }
   }
 }

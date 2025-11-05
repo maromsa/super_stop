@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:confetti/confetti.dart';
 import 'dart:developer' as developer;
+import 'package:super_stop/l10n/app_localizations.dart';
+
 import 'settings_screen.dart';
 import '../services/achievement_service.dart';
 
@@ -322,6 +324,7 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
   }
 
   Widget _buildGameContent() {
+    final l10n = AppLocalizations.of(context)!;
     if (_gameState == GameState.gettingReady) {
       return Text('$_countdown', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold));
     }
@@ -331,12 +334,12 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
         children: [
           const Icon(Icons.gamepad, size: 80, color: Colors.red),
           const SizedBox(height: 20),
-          const Text('Game Over', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-          Text('Final Score: $_score', style: const TextStyle(fontSize: 24)),
+          Text(l10n.impulseGameOverTitle, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+          Text(l10n.impulseFinalScore(_score), style: const TextStyle(fontSize: 24)),
           const SizedBox(height: 40),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Return Home'),
+            child: Text(l10n.impulseReturnHome),
           )
         ],
       );
@@ -349,7 +352,11 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
           duration: const Duration(milliseconds: 200),
           transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
           child: _combo > 1
-              ? Text('x$_combo COMBO!', key: ValueKey<int>(_combo), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber))
+              ? Text(
+                  l10n.impulseComboLabel(_combo),
+                  key: ValueKey<int>(_combo),
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber),
+                )
               : SizedBox(key: const ValueKey<int>(0), height: 34), // Placeholder for alignment
         ),
         AnimatedSwitcher(

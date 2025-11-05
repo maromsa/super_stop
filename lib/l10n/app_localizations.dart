@@ -123,8 +123,9 @@ abstract class AppLocalizations {
   String get homeInstructionsStroopBody;
   String get homeInstructionsClose;
   String get homeStatStreak;
-  String get homeStatGoal;
-  String get homeStatCoins;
+    String get homeStatGoal;
+    String get homeStatCoins;
+    String homeExperienceProgress(int current, int goal);
   String get homeTitle;
   String get homeChooseChallenge;
   String get homeGameImpulse;
@@ -170,11 +171,12 @@ abstract class AppLocalizations {
   String get progressStatsCoins;
   String get progressStatsGamesToday;
   String get progressStatsFocusToday;
-  String get progressStatsWeeklyGames;
-  String get progressStatsWeeklyFocus;
-  String get progressWeeklyGamesTitle;
-  String get progressAchievementsTitle;
-  String get progressAchievementsButton;
+    String get progressStatsWeeklyGames;
+    String get progressStatsWeeklyFocus;
+    String get progressWeeklyGamesTitle;
+    String get progressAchievementsTitle;
+    String get progressAchievementsButton;
+    String get achievementUnknown;
 
   String get moodCheckInTitle;
   String get moodCheckInPrompt;
@@ -199,12 +201,22 @@ abstract class AppLocalizations {
   String get onboardingFeatureGames;
   String get onboardingFeatureFocus;
   String get onboardingFeatureRewards;
-  String get onboardingFeatureProgress;
-  String get onboardingMoodTitle;
-  String get onboardingMoodSubtitle;
-  String get onboardingBack;
-  String get onboardingNext;
-  String get onboardingMoodPrompt;
+    String get onboardingFeatureProgress;
+    String get onboardingMoodTitle;
+    String get onboardingMoodSubtitle;
+    String get onboardingBack;
+    String get onboardingNext;
+    String get onboardingMoodPrompt;
+
+    String get impulseGameOverTitle;
+    String impulseFinalScore(int score);
+    String get impulseReturnHome;
+    String impulseComboLabel(int combo);
+
+    String get reactionTestCompleteTitle;
+    String reactionTestCompleteSummary(int best, int worst, int average);
+
+    String get routerNotFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
