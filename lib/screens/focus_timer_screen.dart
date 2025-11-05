@@ -30,7 +30,7 @@ class _FocusTimerContent extends StatefulWidget {
 class _FocusTimerContentState extends State<_FocusTimerContent> {
   late final AudioPlayer _audioPlayer;
   FocusTimerPhase? _previousPhase;
-  int _lastCompletionTicker = 0;
+  int _lastCompletionEventCount = 0;
 
   @override
   void initState() {
@@ -85,10 +85,10 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
   }
 
   void _listenForCompletion(FocusTimerController controller) {
-    if (_lastCompletionTicker == controller.completionTicker) {
+    if (_lastCompletionEventCount == controller.completionEvents) {
       return;
     }
-    _lastCompletionTicker = controller.completionTicker;
+    _lastCompletionEventCount = controller.completionEvents;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _handleFocusCompletion(controller);
     });
@@ -168,7 +168,7 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
           children: options.map((minutes) {
             final isSelected = minutes == currentValue;
             return ChoiceChip(
-                label: Text(formatLabel != null ? formatLabel(minutes) : '$minutes'),
+              label: Text(formatLabel != null ? formatLabel(minutes) : '$minutes'),
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) onChanged(minutes);

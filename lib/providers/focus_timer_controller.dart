@@ -22,10 +22,11 @@ class FocusTimerController extends ChangeNotifier {
   int _selectedBreakMinutes = 2;
   bool _soundEnabled = true;
   int _completedSessions = 0;
-  int _completionTicker = 0;
+  int _completionEvents = 0;
   int _rewardCoins = 5;
   int _rewardExperience = 0;
   bool _isLoaded = false;
+  bool _autoStartBreak = false;
 
   FocusTimerPhase get phase => _phase;
   int get timeRemainingSeconds => _timeRemainingSeconds;
@@ -33,32 +34,33 @@ class FocusTimerController extends ChangeNotifier {
   int get selectedBreakMinutes => _selectedBreakMinutes;
   bool get soundEnabled => _soundEnabled;
   int get completedSessions => _completedSessions;
-  int get completionTicker => _completionTicker;
+  int get completionEvents => _completionEvents;
   int get focusRewardCoins => _rewardCoins;
   int get focusRewardExperience => _rewardExperience;
   bool get isLoaded => _isLoaded;
   bool get isRunning => _timer?.isActive ?? false;
+  bool get autoStartBreak => _autoStartBreak;
 
   Future<void> startFocus() async {
-    _phase = FocusTimerPhase.focus;
-    _timeRemainingSeconds = _selectedFocusMinutes * 60;
-    _startTimer();
-    notifyListeners();
+    _activateTimedPhase(FocusTimerPhase.focus, _selectedFocusMinutes);
   }
 
   Future<void> startBreak() async {
-    _phase = FocusTimerPhase.breakTime;
-    _timeRemainingSeconds = _selectedBreakMinutes * 60;
-    _startTimer();
-    notifyListeners();
+    _activateTimedPhase(FocusTimerPhase.breakTime, _selectedBreakMinutes);
   }
 
   void pause() {
-    _timer?.cancel();
+    if (!isRunning) {
+      return;
+    }
+    _stopTimer();
     notifyListeners();
   }
 
   void resume() {
+    if (_timeRemainingSeconds <= 0 || isRunning) {
+      return;
+    }
     if (_phase == FocusTimerPhase.focus || _phase == FocusTimerPhase.breakTime) {
       _startTimer();
       notifyListeners();
@@ -66,72 +68,115 @@ class FocusTimerController extends ChangeNotifier {
   }
 
   void reset() {
-    _timer?.cancel();
+    _stopTimer();
     _phase = FocusTimerPhase.idle;
     _timeRemainingSeconds = 0;
     notifyListeners();
   }
 
   Future<void> updateFocusMinutes(int minutes) async {
-    _selectedFocusMinutes = minutes;
-    await _savePreferences();
-    notifyListeners();
+    await _updateDurations(focusMinutes: minutes);
   }
 
   Future<void> updateBreakMinutes(int minutes) async {
-    _selectedBreakMinutes = minutes;
-    await _savePreferences();
-    notifyListeners();
+    await _updateDurations(breakMinutes: minutes);
   }
 
   Future<void> setSoundEnabled(bool value) async {
+    if (_soundEnabled == value) {
+      return;
+    }
     _soundEnabled = value;
     await _savePreferences();
     notifyListeners();
   }
 
   Future<void> setRewards({int? coins, int? experience}) async {
+    var didChange = false;
     if (coins != null) {
-      _rewardCoins = coins;
+      if (_rewardCoins != coins) {
+        _rewardCoins = coins;
+        didChange = true;
+      }
     }
     if (experience != null) {
-      _rewardExperience = experience;
+      if (_rewardExperience != experience) {
+        _rewardExperience = experience;
+        didChange = true;
+      }
+    }
+    if (!didChange) {
+      return;
     }
     await _savePreferences();
     notifyListeners();
   }
 
+  Future<void> setAutoStartBreak(bool value) async {
+    if (_autoStartBreak == value) {
+      return;
+    }
+    _autoStartBreak = value;
+    await _savePreferences();
+    notifyListeners();
+  }
+
+  void skipBreak() {
+    if (_phase != FocusTimerPhase.breakTime && _phase != FocusTimerPhase.completed) {
+      return;
+    }
+    _stopTimer();
+    _phase = FocusTimerPhase.idle;
+    _timeRemainingSeconds = 0;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
-    _timer?.cancel();
+    _stopTimer();
     super.dispose();
   }
 
   void _startTimer() {
-    _timer?.cancel();
+    _stopTimer();
+    if (_timeRemainingSeconds <= 0) {
+      _onTimerComplete();
+      return;
+    }
     _timer = Timer.periodic(_tickDuration, (timer) {
       if (_timeRemainingSeconds > 0) {
         _timeRemainingSeconds--;
         notifyListeners();
-      } else {
-        timer.cancel();
-        _onTimerComplete();
+        return;
       }
+      timer.cancel();
+      _timer = null;
+      _onTimerComplete();
     });
   }
 
   void _onTimerComplete() {
-    if (_phase == FocusTimerPhase.focus) {
-      _completedSessions++;
-      _completionTicker++;
-      _phase = FocusTimerPhase.completed;
-      _timeRemainingSeconds = 0;
-      _savePreferences();
-    } else if (_phase == FocusTimerPhase.breakTime) {
-      _phase = FocusTimerPhase.idle;
-      _timeRemainingSeconds = 0;
+    switch (_phase) {
+      case FocusTimerPhase.focus:
+        _completedSessions++;
+        _completionEvents++;
+        _phase = FocusTimerPhase.completed;
+        _timeRemainingSeconds = 0;
+        unawaited(_savePreferences());
+        notifyListeners();
+        if (_autoStartBreak && _selectedBreakMinutes > 0) {
+          _scheduleAutoStartBreak();
+        }
+        break;
+      case FocusTimerPhase.breakTime:
+        _phase = FocusTimerPhase.idle;
+        _timeRemainingSeconds = 0;
+        notifyListeners();
+        break;
+      case FocusTimerPhase.idle:
+      case FocusTimerPhase.completed:
+        break;
     }
-    notifyListeners();
   }
 
   Future<void> _hydrate() async {
@@ -142,6 +187,7 @@ class FocusTimerController extends ChangeNotifier {
     _completedSessions = prefs.getInt(PrefsKeys.focusSessionsCompleted) ?? 0;
     _rewardCoins = prefs.getInt(PrefsKeys.focusRewardCoins) ?? 5;
     _rewardExperience = prefs.getInt(PrefsKeys.focusRewardExperience) ?? 0;
+    _autoStartBreak = prefs.getBool(PrefsKeys.focusAutoStartBreak) ?? false;
     _isLoaded = true;
     notifyListeners();
   }
@@ -154,5 +200,44 @@ class FocusTimerController extends ChangeNotifier {
     await prefs.setInt(PrefsKeys.focusSessionsCompleted, _completedSessions);
     await prefs.setInt(PrefsKeys.focusRewardCoins, _rewardCoins);
     await prefs.setInt(PrefsKeys.focusRewardExperience, _rewardExperience);
+    await prefs.setBool(PrefsKeys.focusAutoStartBreak, _autoStartBreak);
+  }
+
+  void _activateTimedPhase(FocusTimerPhase phase, int durationMinutes) {
+    _phase = phase;
+    _timeRemainingSeconds = durationMinutes * 60;
+    _startTimer();
+    notifyListeners();
+  }
+
+  Future<void> _updateDurations({int? focusMinutes, int? breakMinutes}) async {
+    var didChange = false;
+    if (focusMinutes != null && focusMinutes != _selectedFocusMinutes) {
+      _selectedFocusMinutes = focusMinutes;
+      didChange = true;
+    }
+    if (breakMinutes != null && breakMinutes != _selectedBreakMinutes) {
+      _selectedBreakMinutes = breakMinutes;
+      didChange = true;
+    }
+    if (!didChange) {
+      return;
+    }
+    await _savePreferences();
+    notifyListeners();
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _scheduleAutoStartBreak() {
+    unawaited(Future<void>.microtask(() async {
+      if (_phase != FocusTimerPhase.completed) {
+        return;
+      }
+      await startBreak();
+    }));
   }
 }
