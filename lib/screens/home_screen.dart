@@ -210,7 +210,7 @@ class HomeScreen extends StatelessWidget {
             ),
             IconButton(
               icon: Text(
-                '¿',
+                '?',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
