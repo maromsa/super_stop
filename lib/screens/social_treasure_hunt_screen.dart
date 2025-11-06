@@ -61,7 +61,7 @@ class _SocialTreasureHuntScreenState extends State<SocialTreasureHuntScreen> {
                     coinProvider: coins,
                     collectibleProvider: collectibles,
                   );
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   final message = updated?.isComplete == true
                       ? 'הצוות פיצח את כל הרמזים!'
                       : 'רמז סומן בשם $name';

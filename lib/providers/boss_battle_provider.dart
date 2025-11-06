@@ -88,7 +88,7 @@ class BossBattleProvider with ChangeNotifier {
   }
 
   static List<BossBattle> _seedBattles() => <BossBattle>[
-        BossBattle(
+        const BossBattle(
           id: 'planner_bot',
           name: 'בוט התכנון',
           domain: BossBattleDomain.planning,
@@ -108,7 +108,7 @@ class BossBattleProvider with ChangeNotifier {
             ),
           ],
         ),
-        BossBattle(
+        const BossBattle(
           id: 'memory_mage',
           name: 'קוסם הזיכרון',
           domain: BossBattleDomain.workingMemory,
@@ -134,7 +134,7 @@ class BossBattleProvider with ChangeNotifier {
             ),
           ],
         ),
-        BossBattle(
+        const BossBattle(
           id: 'sequence_guardian',
           name: 'שומרת הסדר',
           domain: BossBattleDomain.sequencing,

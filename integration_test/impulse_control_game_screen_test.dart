@@ -204,8 +204,8 @@ class _ImpulseControlGameScreenState extends State<ImpulseControlGameScreen> wit
               child: ElevatedButton(
                 onPressed: _onButtonPressed,
                 style: ButtonStyle(
-                  shape: MaterialStateProperty.all<OutlinedBorder>(const CircleBorder()),
-                  backgroundColor: MaterialStateProperty.all<Color>(isWaiting ? Colors.grey.shade700 : _getCircleColor()),
+                  shape: WidgetStateProperty.all<OutlinedBorder>(const CircleBorder()),
+                  backgroundColor: WidgetStateProperty.all<Color>(isWaiting ? Colors.grey.shade700 : _getCircleColor()),
                 ),
                 child: Text(_getButtonText(), style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold)),
               ),

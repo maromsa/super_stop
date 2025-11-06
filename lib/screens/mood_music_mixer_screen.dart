@@ -40,22 +40,26 @@ class MoodMusicMixerScreen extends StatelessWidget {
                       .toList(),
                 ),
                 const SizedBox(height: 24),
-                DropdownButtonFormField<String>(
-                  value: activeLayer.track,
-                  decoration: const InputDecoration(labelText: 'צליל מוביל'),
-                  items: provider.availableTracks
-                      .map(
-                        (track) => DropdownMenuItem(
-                          value: track,
-                          child: Text(track.replaceAll('.mp3', '')),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      provider.updateLayer(activeMood, track: value);
-                    }
-                  },
+                InputDecorator(
+                  decoration: const InputDecoration(labelText: 'צליל מוביל', border: OutlineInputBorder()),
+                  child: DropdownButton<String>(
+                    value: activeLayer.track,
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    items: provider.availableTracks
+                        .map(
+                          (track) => DropdownMenuItem(
+                            value: track,
+                            child: Text(track.replaceAll('.mp3', '')),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        provider.updateLayer(activeMood, track: value);
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text('עוצמה: ${(activeLayer.volume * 100).round()}%'),
