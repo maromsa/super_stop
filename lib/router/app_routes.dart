@@ -10,4 +10,12 @@ class AppRoutes {
   static const String impulse = '/impulse';
   static const String reaction = '/reaction';
   static const String stroop = '/stroop';
+  static const String dailyQuests = '/daily-quests';
+  static const String focusBurst = '/focus-burst';
+  static const String calmMode = '/calm-mode';
+  static const String socialTreasure = '/social-treasure';
+  static const String moodMixer = '/mood-mixer';
+  static const String habitStory = '/habit-story';
+  static const String bossBattles = '/boss-battles';
+  static const String collectibles = '/collectibles';
 }

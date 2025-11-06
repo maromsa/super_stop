@@ -75,6 +75,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeAdditionalTools => 'More tools';
 
   @override
+  String get homeDailyQuestTitle => 'Daily quests';
+
+  @override
+  String get homeDailyQuestOpen => 'Open quest board';
+
+  @override
+  String get homeAdventureHubTitle => 'Adventure hub';
+
+  @override
+  String get homeAdventureFocus => 'Focus bursts';
+
+  @override
+  String get homeAdventureCalm => 'Calm mode';
+
+  @override
+  String get homeAdventureSocial => 'Social hunt';
+
+  @override
+  String get homeAdventureMixer => 'Mood music mixer';
+
+  @override
+  String get homeAdventureStory => 'Habit comic';
+
+  @override
+  String get homeAdventureBoss => 'Executive boss battles';
+
+  @override
+  String get homeAdventureCollectibles => 'Rewards gallery';
+
+  @override
   String get homeMoodSelectorTitle => 'Choose your vibe';
 
   @override

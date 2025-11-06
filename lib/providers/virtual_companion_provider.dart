@@ -38,6 +38,14 @@ class VirtualCompanionProvider with ChangeNotifier {
     'שמתי בצד את המטבע הכי נוצץ למפגש הבא שלך.',
     'בוא נפתח יחד תג נוסף לפני השקיעה!',
   ];
+  static const List<String> _focusVictoryMessages = [
+    'מכת קצב! פרץ הריכוז האחרון היה אגדי.',
+    'אני שומרת עבורך מסלול מהיר למבצר הבוס הבא.',
+  ];
+  static const List<String> _calmCelebrations = [
+    'הפסקת הנשימה שלך הרגיעה גם אותי – קבלי חיבוק כוכבי!',
+    'תדרי ההרגעה שלך פתחו תג הזוהר.'
+  ];
 
   final DateTime Function() _clock;
   int _bondLevel = 10;
@@ -47,6 +55,7 @@ class VirtualCompanionProvider with ChangeNotifier {
   bool _isLoaded = false;
   String? _cachedHeadline;
   String? _cachedMessage;
+  int _focusVictoryCount = 0;
 
   CompanionPresentation get presentation {
     _ensureDailyDecay();
@@ -106,6 +115,31 @@ class VirtualCompanionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void registerFocusBurstVictory() {
+    _ensureDailyDecay();
+    _focusVictoryCount++;
+    _bondLevel = (_bondLevel + 5).clamp(0, 100);
+    _moodScore = (_moodScore + 9).clamp(0, 150);
+    final messageIndex = _focusVictoryCount % _focusVictoryMessages.length;
+    _cachedHeadline = 'פרץ ריכוז מהחלל!';
+    _cachedMessage = _focusVictoryMessages[messageIndex];
+    _lastInteraction = _clock();
+    _persist();
+    notifyListeners();
+  }
+
+  void registerCalmCelebration() {
+    _ensureDailyDecay();
+    _bondLevel = (_bondLevel + 3).clamp(0, 100);
+    _moodScore = (_moodScore + 6).clamp(0, 150);
+    final index = _clock().millisecond % _calmCelebrations.length;
+    _cachedHeadline = 'נשימת קסם!';
+    _cachedMessage = _calmCelebrations[index];
+    _lastInteraction = _clock();
+    _persist();
+    notifyListeners();
+  }
+
   String nextNudge() {
     _ensureDailyDecay();
     final index = _clock().millisecondsSinceEpoch % _supportiveMessages.length;
@@ -119,6 +153,7 @@ class VirtualCompanionProvider with ChangeNotifier {
     _lastInteraction = null;
     _cachedHeadline = null;
     _cachedMessage = null;
+    _focusVictoryCount = 0;
     _persist();
   }
 
@@ -187,6 +222,7 @@ class VirtualCompanionProvider with ChangeNotifier {
     if (lastInteraction != null) {
       _lastInteraction = DateTime.tryParse(lastInteraction);
     }
+    _focusVictoryCount = prefs.getInt('${PrefsKeys.companionBondLevel}_focus_victories') ?? 0;
     _isLoaded = true;
     notifyListeners();
   }
@@ -202,5 +238,6 @@ class VirtualCompanionProvider with ChangeNotifier {
     if (_lastInteraction != null) {
       await prefs.setString(PrefsKeys.companionLastInteraction, _lastInteraction!.toIso8601String());
     }
+    await prefs.setInt('${PrefsKeys.companionBondLevel}_focus_victories', _focusVictoryCount);
   }
 }

@@ -75,6 +75,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get homeAdditionalTools => 'כלים נוספים';
 
   @override
+  String get homeDailyQuestTitle => 'משימות יומיות';
+
+  @override
+  String get homeDailyQuestOpen => 'פתחו את לוח המשימות';
+
+  @override
+  String get homeAdventureHubTitle => 'עולם ההרפתקאות';
+
+  @override
+  String get homeAdventureFocus => 'פרצי ריכוז';
+
+  @override
+  String get homeAdventureCalm => 'מצב רגוע';
+
+  @override
+  String get homeAdventureSocial => 'מצוד חברתי';
+
+  @override
+  String get homeAdventureMixer => 'מערבל מוזיקה';
+
+  @override
+  String get homeAdventureStory => 'קומיקס רצף';
+
+  @override
+  String get homeAdventureBoss => 'בוסי ביצוע';
+
+  @override
+  String get homeAdventureCollectibles => 'אוסף פרסים';
+
+  @override
   String get homeMoodSelectorTitle => 'בחרו את אווירת האפליקציה';
 
   @override
