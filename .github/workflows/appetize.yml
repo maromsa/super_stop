@@ -40,10 +40,10 @@ jobs:
         env:
           APK_PATH: build/app/outputs/flutter-apk/app-debug.apk
         run: |
-          if [ ! -f "$APK_PATH" ]; then
-            echo "::error ::APK not found at $APK_PATH"
-            exit 1
-          fi
+            if [ ! -f "$APK_PATH" ]; then
+              echo "::error ::APK not found at $APK_PATH"
+              exit 1
+            fi
 
             if [ -n "$APPETIZE_PUBLIC_KEY" ]; then
               echo "Updating existing Appetize app ($APPETIZE_PUBLIC_KEY)" >> "$GITHUB_STEP_SUMMARY"
@@ -61,7 +61,7 @@ jobs:
                 -H "Accept: application/json" \
                 -F "file=@$APK_PATH" \
                 -F "platform=android")
-          fi
+            fi
 
             printf '%s' "$RESPONSE" > appetize_response.json
 
@@ -73,6 +73,7 @@ jobs:
             path = "appetize_response.json"
             with open(path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
+
 
             def find_value(payload, *paths):
                 for path in paths:
@@ -93,6 +94,7 @@ jobs:
                     if value not in (None, ""):
                         return value
                 return None
+
 
             public_key = find_value(
                 data,
@@ -161,6 +163,6 @@ jobs:
                         output.write(f"private_url={private_url}\n")
             PY
 
-          if [ -z "$APPETIZE_PUBLIC_KEY" ]; then
-            echo "::notice ::Save the reported Appetize public key as APPETIZE_PUBLIC_KEY for future updates."
-          fi
+            if [ -z "$APPETIZE_PUBLIC_KEY" ]; then
+              echo "::notice ::Save the reported Appetize public key as APPETIZE_PUBLIC_KEY for future updates."
+            fi
