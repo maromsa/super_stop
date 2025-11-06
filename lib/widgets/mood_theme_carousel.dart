@@ -147,82 +147,95 @@ class _MoodCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 360),
-              curve: Curves.easeOutCubic,
-              width: 150,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: gradient,
-                borderRadius: BorderRadius.circular(isActive ? 28 : 24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(isActive ? 0.7 : 0.25),
-                  width: isActive ? 1.8 : 0.9,
-                ),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: colors.last.withOpacity(0.35),
-                          blurRadius: 22,
-                          offset: const Offset(0, 10),
-                        ),
-                      ]
-                    : [
-                        BoxShadow(
-                          color: colors.last.withOpacity(0.18),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    emoji,
-                    style: const TextStyle(fontSize: 34),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isCompact = constraints.maxHeight < 120;
+                final double emojiSize = isCompact ? 28 : 34;
+                final double labelSize = isCompact ? 14 : 16;
+                final double badgeFont = isCompact ? 11 : 12;
+                final EdgeInsets padding = EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: isCompact ? 12 : 16,
+                );
+
+                final column = Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      emoji,
+                      style: TextStyle(fontSize: emojiSize),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: isActive ? 1 : 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(12),
+                    SizedBox(height: isCompact ? 6 : 8),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: labelSize,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
-                          const SizedBox(width: 4),
-                          Text(
-                            activeBadgeLabel,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                    ),
+                    SizedBox(height: isCompact ? 4 : 6),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: isActive ? 1 : 0,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 8 : 10,
+                          vertical: isCompact ? 3 : 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.22),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
+                              activeBadgeLabel,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: badgeFont,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
+                  ],
+                );
+
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 360),
+                  curve: Curves.easeOutCubic,
+                  width: 150,
+                  padding: padding,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(isActive ? 28 : 24),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(isActive ? 0.7 : 0.25),
+                      width: isActive ? 1.8 : 0.9,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.last.withOpacity(isActive ? 0.32 : 0.18),
+                        blurRadius: isActive ? 22 : 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: isCompact
+                      ? FittedBox(fit: BoxFit.scaleDown, child: column)
+                      : column,
+                );
+              },
             ),
             if (!isUnlocked)
               Positioned.fill(
