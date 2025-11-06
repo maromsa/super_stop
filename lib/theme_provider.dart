@@ -66,6 +66,7 @@ class ThemeProvider with ChangeNotifier {
   Set<Mood> get unlockedMoods => Set<Mood>.unmodifiable(_unlockedMoods);
   MoodThemeDetails get moodDetails => _moodDetails ?? _resolveDetailsForMood(_activeMood);
   bool get isLoaded => _isLoaded;
+  MoodThemeDetails detailsForMood(Mood mood) => _resolveDetailsForMood(mood);
 
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;

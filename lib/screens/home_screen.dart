@@ -14,6 +14,9 @@ import '../providers/virtual_companion_provider.dart';
 import '../router/app_routes.dart';
 import '../services/achievement_service.dart';
 import '../widgets/achievement_popup.dart';
+import '../widgets/ambient_background.dart';
+import '../widgets/mood_theme_carousel.dart';
+import '../widgets/daily_spark_sheet.dart';
 import '../theme_provider.dart';
 import 'impulse_control_game_screen.dart' show GameMode;
 import 'reaction_time_screen.dart' show ReactionMode;
@@ -163,6 +166,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  void _showDailySparkSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      showDragHandle: false,
+      builder: (sheetContext) => DailySparkSheet(hostContext: context),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -172,332 +188,389 @@ class HomeScreen extends StatelessWidget {
         Theme.of(context).iconTheme.color ??
         Colors.white;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.homeTitle),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Chip(
-              backgroundColor: Colors.amber.shade100,
-              avatar: const Icon(Icons.monetization_on, color: Colors.amber),
-              label: Consumer<CoinProvider>(
-                builder: (context, coinProvider, child) {
-                  return Text(
-                    '${coinProvider.coins}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  );
-                },
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.homeTitle),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Chip(
+                backgroundColor: Colors.amber.shade100,
+                avatar: const Icon(Icons.monetization_on, color: Colors.amber),
+                label: Consumer<CoinProvider>(
+                  builder: (context, coinProvider, child) {
+                    return Text(
+                      '${coinProvider.coins}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: Text(
-              '¿',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: iconColor,
+            IconButton(
+              icon: Text(
+                '¿',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: iconColor,
+                ),
+              ),
+              tooltip: l10n.homeInstructionsTooltip,
+              onPressed: () => _showInstructionsDialog(context),
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(gradient: themeDetails.backgroundGradient),
               ),
             ),
-            tooltip: l10n.homeInstructionsTooltip,
-            onPressed: () => _showInstructionsDialog(context),
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(gradient: themeDetails.backgroundGradient),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              children: <Widget>[
-                const SizedBox(height: 12),
-                _buildCompanionPanel(context, l10n),
-                Consumer3<DailyGoalsProvider, LevelProvider, CoinProvider>(
-                  builder: (context, goalsProvider, levelProvider, coinProvider, child) {
-                    return Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.purple.shade300,
-                            Colors.blue.shade300,
-                            Colors.pink.shade300,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purple.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.3),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.star, size: 40, color: Colors.white),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedAmbientBackground(
+                  colors: themeDetails.backgroundGradient.colors,
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.08),
+                      Colors.black.withOpacity(0.04),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 12),
+                      const MoodThemeCarousel(),
+                      const SizedBox(height: 16),
+                      _buildCompanionPanel(context, l10n),
+                      const SizedBox(height: 20),
+                      Consumer3<DailyGoalsProvider, LevelProvider, CoinProvider>(
+                        builder: (context, goalsProvider, levelProvider, coinProvider, child) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.purple.shade300,
+                                  Colors.blue.shade300,
+                                  Colors.pink.shade300,
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'רמה ${levelProvider.level}',
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.purple.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.3),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.star, size: 40, color: Colors.white),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'רמה ${levelProvider.level}',
+                                          style: const TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          levelProvider.levelTitle,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white.withOpacity(0.9),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: LinearProgressIndicator(
+                                    value: levelProvider.experienceProgress,
+                                    minHeight: 20,
+                                    backgroundColor: Colors.white.withOpacity(0.3),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
-                                  Text(
-                                    levelProvider.levelTitle,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    l10n.homeExperienceProgress(
+                                      levelProvider.experience,
+                                      levelProvider.experienceForNextLevel,
+                                    ),
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 12,
                                       color: Colors.white.withOpacity(0.9),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: levelProvider.experienceProgress,
-                              minHeight: 20,
-                              backgroundColor: Colors.white.withOpacity(0.3),
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildStatBadge(
+                                      Icons.local_fire_department,
+                                      '${goalsProvider.streak}',
+                                      l10n.homeStatStreak,
+                                      Colors.orange,
+                                    ),
+                                    _buildStatBadge(
+                                      Icons.flag,
+                                      '${goalsProvider.gamesPlayedToday}/${goalsProvider.dailyGoal}',
+                                      l10n.homeStatGoal,
+                                      Colors.green,
+                                    ),
+                                    _buildStatBadge(
+                                      Icons.monetization_on,
+                                      '${coinProvider.coins}',
+                                      l10n.homeStatCoins,
+                                      Colors.amber,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              l10n.homeExperienceProgress(levelProvider.experience, levelProvider.experienceForNextLevel),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withOpacity(0.9),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      _buildMysteryQuestSection(context, l10n),
+                      const SizedBox(height: 20),
+                      Consumer<MoodJournalProvider>(
+                        builder: (context, journal, _) {
+                          final latest = journal.latestEntry;
+                          final hasCheckIn = journal.hasCheckInToday;
+                          final moodLabel = latest != null ? _resolveMoodLabel(latest.mood, l10n) : null;
+                          final timeText = latest != null
+                              ? l10n.moodCheckInLastTime(
+                                  TimeOfDay.fromDateTime(latest.timestamp).format(context),
+                                )
+                              : l10n.moodDistributionEmpty;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text('🧠', style: Theme.of(context).textTheme.headlineSmall),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          l10n.moodCheckInTitle,
+                                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      latest != null ? moodLabel ?? '' : l10n.moodCheckInPrompt,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      timeText,
+                                      style: const TextStyle(color: Colors.grey),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        FilledButton.icon(
+                                          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.moodCheckIn),
+                                          icon: const Icon(Icons.mood),
+                                          label: Text(l10n.moodCheckInButton),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        if (hasCheckIn)
+                                          Text(
+                                            l10n.moodCheckInToday,
+                                            style: const TextStyle(color: Colors.green),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              l10n.homeChooseChallenge,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 20),
+                            _GameSelectionButton(
+                              label: l10n.homeGameImpulse,
+                              icon: Icons.timer,
+                              onPressed: () {
+                                _handleGamePlayed(context, 'impulse');
+                                _showImpulseModeSelector(context);
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                            _GameSelectionButton(
+                              label: l10n.homeGameReaction,
+                              icon: Icons.bolt,
+                              onPressed: () {
+                                _handleGamePlayed(context, 'reaction');
+                                _showReactionModeSelector(context);
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                            _GameSelectionButton(
+                              label: l10n.homeGameStroop,
+                              icon: Icons.psychology,
+                              onPressed: () {
+                                _handleGamePlayed(context, 'stroop');
+                                _showStroopModeSelector(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              l10n.homeAdditionalTools,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 15),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: _CompactButton(
+                                      label: l10n.homeToolBreathing,
+                                      icon: Icons.air,
+                                      onPressed: () => Navigator.pushNamed(context, AppRoutes.breathing),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: _CompactButton(
+                                      label: l10n.homeToolFocusTimer,
+                                      icon: Icons.timer_outlined,
+                                      onPressed: () => Navigator.pushNamed(context, AppRoutes.focusTimer),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: _CompactButton(
+                                      label: l10n.homeToolProgress,
+                                      icon: Icons.dashboard,
+                                      onPressed: () => Navigator.pushNamed(context, AppRoutes.progress),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.emoji_events),
+                            label: Text(l10n.homeButtonAchievements),
+                            onPressed: () => Navigator.pushNamed(context, AppRoutes.achievements),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStatBadge(
-                                Icons.local_fire_department,
-                                '${goalsProvider.streak}',
-                                l10n.homeStatStreak,
-                                Colors.orange,
-                              ),
-                              _buildStatBadge(
-                                Icons.flag,
-                                '${goalsProvider.gamesPlayedToday}/${goalsProvider.dailyGoal}',
-                                l10n.homeStatGoal,
-                                Colors.green,
-                              ),
-                              _buildStatBadge(
-                                Icons.monetization_on,
-                                '${coinProvider.coins}',
-                                l10n.homeStatCoins,
-                                Colors.amber,
-                              ),
-                            ],
+                          const SizedBox(width: 20),
+                          TextButton.icon(
+                            icon: const Icon(Icons.settings),
+                            label: Text(l10n.homeButtonSettings),
+                            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
                           ),
                         ],
                       ),
-                    );
-                  },
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildMysteryQuestSection(context, l10n),
-                const SizedBox(height: 20),
-                Consumer<MoodJournalProvider>(
-                  builder: (context, journal, _) {
-                    final latest = journal.latestEntry;
-                    final hasCheckIn = journal.hasCheckInToday;
-                    final moodLabel = latest != null ? _resolveMoodLabel(latest.mood, l10n) : null;
-                    final timeText = latest != null
-                        ? l10n.moodCheckInLastTime(TimeOfDay.fromDateTime(latest.timestamp).format(context))
-                        : l10n.moodDistributionEmpty;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text('🧠', style: Theme.of(context).textTheme.headlineSmall),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    l10n.moodCheckInTitle,
-                                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                latest != null ? moodLabel ?? '' : l10n.moodCheckInPrompt,
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                timeText,
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  FilledButton.icon(
-                                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.moodCheckIn),
-                                    icon: const Icon(Icons.mood),
-                                    label: Text(l10n.moodCheckInButton),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  if (hasCheckIn)
-                                    Text(
-                                      l10n.moodCheckInToday,
-                                      style: const TextStyle(color: Colors.green),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                Text(l10n.homeChooseChallenge, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                _GameSelectionButton(
-                  label: l10n.homeGameImpulse,
-                  icon: Icons.timer,
-                  onPressed: () {
-                    _handleGamePlayed(context, 'impulse');
-                    _showImpulseModeSelector(context);
-                  },
-                ),
-                const SizedBox(height: 15),
-                _GameSelectionButton(
-                  label: l10n.homeGameReaction,
-                  icon: Icons.bolt,
-                  onPressed: () {
-                    _handleGamePlayed(context, 'reaction');
-                    _showReactionModeSelector(context);
-                  },
-                ),
-                const SizedBox(height: 15),
-                _GameSelectionButton(
-                  label: l10n.homeGameStroop,
-                  icon: Icons.psychology,
-                  onPressed: () {
-                    _handleGamePlayed(context, 'stroop');
-                    _showStroopModeSelector(context);
-                  },
-                ),
-                const SizedBox(height: 30),
-                Text(l10n.homeAdditionalTools, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: _CompactButton(
-                          label: l10n.homeToolBreathing,
-                          icon: Icons.air,
-                          onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.breathing);
-                          },
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: _CompactButton(
-                          label: l10n.homeToolFocusTimer,
-                          icon: Icons.timer_outlined,
-                          onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.focusTimer);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: _CompactButton(
-                          label: l10n.homeToolProgress,
-                          icon: Icons.dashboard,
-                          onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.progress);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton.icon(
-                      icon: const Icon(Icons.emoji_events),
-                      label: Text(l10n.homeButtonAchievements),
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.achievements);
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    TextButton.icon(
-                      icon: const Icon(Icons.settings),
-                      label: Text(l10n.homeButtonSettings),
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.settings);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      ),
-    );
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showDailySparkSheet(context),
+          icon: const Icon(Icons.auto_awesome),
+          label: Text(l10n.dailySparkFabLabel),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      );
   }
-
   Widget _buildCompanionPanel(BuildContext context, AppLocalizations l10n) {
     return Consumer2<VirtualCompanionProvider, AchievementService>(
       builder: (context, companionProvider, achievementService, _) {

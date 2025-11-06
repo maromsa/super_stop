@@ -42,6 +42,27 @@
     "homeGameReaction": "מבחן תגובה",
     "homeGameStroop": "מבחן סטרופ",
     "homeAdditionalTools": "כלים נוספים",
+    "homeMoodSelectorTitle": "בחרו את אווירת האפליקציה",
+    "homeMoodLockedMessage": "המשיכו לשחק כדי לפתוח את מצב הרוח הזה!",
+    "homeMoodActiveBadge": "פעיל",
+    "dailySparkFabLabel": "הפתעה יומית",
+    "dailySparkSheetTitle": "הניצוץ של נובה",
+    "dailySparkPrimary": "יאללה!",
+    "dailySparkAnother": "תנו עוד רעיון",
+    "dailySparkCoinMessage": "קיבלתם בונוס של {amount} מטבעות!",
+    "@dailySparkCoinMessage": {
+        "placeholders": {
+            "amount": {}
+        }
+    },
+    "dailySparkMoveTitle": "מסיבת תזוזה זריזה",
+    "dailySparkMoveBody": "הפעילו שיר אהוב וקפצו או רקדו במקום ל-20 שניות.",
+    "dailySparkComplimentTitle": "אתגר מחמאה",
+    "dailySparkComplimentBody": "שלחו הודעה קצרה שמרימה למישהו. מחמאה אחת וזה סגור!",
+    "dailySparkFocusTitle": "אתגר פוקוס זריז",
+    "dailySparkFocusBody": "התחילו טיימר ריכוז קצר ותנו הכול 3 דקות.",
+    "dailySparkBreathTitle": "Boost של נשימה",
+    "dailySparkBreathBody": "קחו הפסקת נשימה רגועה בעזרת התרגיל המודרך.",
     "homeToolBreathing": "תרגיל נשימה",
     "homeToolFocusTimer": "טיימר ריכוז",
     "homeToolProgress": "לוח התקדמות",

@@ -42,6 +42,27 @@
     "homeGameReaction": "Reaction Test",
     "homeGameStroop": "Stroop Test",
     "homeAdditionalTools": "More tools",
+    "homeMoodSelectorTitle": "Choose your vibe",
+    "homeMoodLockedMessage": "Keep playing to unlock this mood!",
+    "homeMoodActiveBadge": "Active",
+    "dailySparkFabLabel": "Daily surprise",
+    "dailySparkSheetTitle": "Nova's surprise spark",
+    "dailySparkPrimary": "Let's do it!",
+    "dailySparkAnother": "Show me another",
+    "dailySparkCoinMessage": "You earned {amount} bonus coins!",
+    "@dailySparkCoinMessage": {
+        "placeholders": {
+            "amount": {}
+        }
+    },
+    "dailySparkMoveTitle": "Quick Move Party",
+    "dailySparkMoveBody": "Turn up your favorite song and dance or jump in place for 20 seconds.",
+    "dailySparkComplimentTitle": "Compliment Quest",
+    "dailySparkComplimentBody": "Send a quick message to cheer someone up. A compliment counts!",
+    "dailySparkFocusTitle": "Focus Flash Challenge",
+    "dailySparkFocusBody": "Start a short focus timer and give it your best for 3 minutes.",
+    "dailySparkBreathTitle": "Breathing Boost",
+    "dailySparkBreathBody": "Take a calm breathing break using the guided exercise.",
     "homeToolBreathing": "Breathing Exercise",
     "homeToolFocusTimer": "Focus Timer",
     "homeToolProgress": "Progress Dashboard",
