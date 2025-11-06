@@ -75,6 +75,54 @@ class AppLocalizationsHe extends AppLocalizations {
   String get homeAdditionalTools => 'כלים נוספים';
 
   @override
+  String get homeMoodSelectorTitle => 'בחרו את אווירת האפליקציה';
+
+  @override
+  String get homeMoodLockedMessage => 'המשיכו לשחק כדי לפתוח את מצב הרוח הזה!';
+
+  @override
+  String get homeMoodActiveBadge => 'פעיל';
+
+  @override
+  String get dailySparkFabLabel => 'הפתעה יומית';
+
+  @override
+  String get dailySparkSheetTitle => 'הניצוץ של נובה';
+
+  @override
+  String get dailySparkPrimary => 'יאללה!';
+
+  @override
+  String get dailySparkAnother => 'תנו עוד רעיון';
+
+  @override
+  String dailySparkCoinMessage(int amount) => 'קיבלתם בונוס של $amount מטבעות!';
+
+  @override
+  String get dailySparkMoveTitle => 'מסיבת תזוזה זריזה';
+
+  @override
+  String get dailySparkMoveBody => 'הפעילו שיר אהוב וקפצו או רקדו במקום ל-20 שניות.';
+
+  @override
+  String get dailySparkComplimentTitle => 'אתגר מחמאה';
+
+  @override
+  String get dailySparkComplimentBody => 'שלחו הודעה קצרה שמרימה למישהו. מחמאה אחת וזה סגור!';
+
+  @override
+  String get dailySparkFocusTitle => 'אתגר פוקוס זריז';
+
+  @override
+  String get dailySparkFocusBody => 'התחילו טיימר ריכוז קצר ותנו הכול 3 דקות.';
+
+  @override
+  String get dailySparkBreathTitle => 'Boost של נשימה';
+
+  @override
+  String get dailySparkBreathBody => 'קחו הפסקת נשימה רגועה בעזרת התרגיל המודרך.';
+
+  @override
   String get homeToolBreathing => 'תרגיל נשימה';
 
   @override

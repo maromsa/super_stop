@@ -20,7 +20,9 @@ class MoodSelector extends StatelessWidget {
       spacing: 16,
       runSpacing: 16,
       alignment: WrapAlignment.center,
-      children: moods.map((mood) => _MoodChip(mood: mood, onMoodSelected: onMoodSelected, compact: isCompact)).toList(),
+      children: moods
+          .map((mood) => _MoodChip(mood: mood, onMoodSelected: onMoodSelected, compact: isCompact))
+          .toList(),
     );
   }
 }
@@ -39,7 +41,7 @@ class _MoodChip extends StatelessWidget {
     final label = _labelForMood(l10n);
 
     final theme = Theme.of(context);
-      return Semantics(
+    return Semantics(
       button: true,
       label: label,
       child: InkWell(
@@ -70,7 +72,10 @@ class _MoodChip extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           ),

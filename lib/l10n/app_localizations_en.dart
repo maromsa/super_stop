@@ -75,6 +75,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeAdditionalTools => 'More tools';
 
   @override
+  String get homeMoodSelectorTitle => 'Choose your vibe';
+
+  @override
+  String get homeMoodLockedMessage => 'Keep playing to unlock this mood!';
+
+  @override
+  String get homeMoodActiveBadge => 'Active';
+
+  @override
+  String get dailySparkFabLabel => 'Daily surprise';
+
+  @override
+  String get dailySparkSheetTitle => "Nova's surprise spark";
+
+  @override
+  String get dailySparkPrimary => "Let's do it!";
+
+  @override
+  String get dailySparkAnother => 'Show me another';
+
+  @override
+  String dailySparkCoinMessage(int amount) => 'You earned $amount bonus coins!';
+
+  @override
+  String get dailySparkMoveTitle => 'Quick Move Party';
+
+  @override
+  String get dailySparkMoveBody => 'Turn up your favorite song and dance or jump in place for 20 seconds.';
+
+  @override
+  String get dailySparkComplimentTitle => 'Compliment Quest';
+
+  @override
+  String get dailySparkComplimentBody => 'Send a quick message to cheer someone up. A compliment counts!';
+
+  @override
+  String get dailySparkFocusTitle => 'Focus Flash Challenge';
+
+  @override
+  String get dailySparkFocusBody => 'Start a short focus timer and give it your best for 3 minutes.';
+
+  @override
+  String get dailySparkBreathTitle => 'Breathing Boost';
+
+  @override
+  String get dailySparkBreathBody => 'Take a calm breathing break using the guided exercise.';
+
+  @override
   String get homeToolBreathing => 'Breathing Exercise';
 
   @override
