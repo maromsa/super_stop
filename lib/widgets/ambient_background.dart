@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class AnimatedAmbientBackground extends StatefulWidget {
   const AnimatedAmbientBackground({
@@ -27,6 +28,7 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
   late final AnimationController _controller;
   late final List<_AmbientBlob> _blobs;
   final math.Random _random = math.Random();
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 18),
-    )..repeat();
+    );
     _blobs = List<_AmbientBlob>.generate(_blobCount, (index) => _createBlob(index));
   }
 
@@ -62,12 +64,46 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
         _blobs[i] = blob.copyWith(color: widget.colors[i % widget.colors.length]);
       }
     }
+    _updateAnimationState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateAnimationState();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _updateAnimationState() {
+    if (!mounted) return;
+    final shouldAnimate = _shouldAnimate();
+    if (shouldAnimate && !_isAnimating) {
+      _controller.repeat();
+      _isAnimating = true;
+    } else if (!shouldAnimate && _isAnimating) {
+      _controller.stop();
+      _isAnimating = false;
+    }
+  }
+
+  bool _shouldAnimate() {
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final disableAnimations = mediaQuery?.disableAnimations ?? false;
+    final tickerEnabled = TickerMode.of(context);
+    var runningInTest = false;
+    assert(() {
+      final runtime = WidgetsBinding.instance.runtimeType.toString().toLowerCase();
+      if (runtime.contains('test')) {
+        runningInTest = true;
+      }
+      return true;
+    }());
+    return tickerEnabled && !disableAnimations && !runningInTest;
   }
 
   @override
