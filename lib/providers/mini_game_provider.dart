@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,11 +83,15 @@ class MiniGameProvider with ChangeNotifier {
   MiniGame? _current;
   int _streak = 0;
   DateTime? _lastCompletedDate;
+  DateTime? _lastGeneratedDate;
   bool _completedToday = false;
   bool _isLoaded = false;
 
   MiniGame get currentMiniGame {
-    _ensureDailyState();
+    final didUpdate = _ensureDailyState();
+    if (didUpdate) {
+      unawaited(_persist());
+    }
     return _current ??= _selectForToday();
   }
 
@@ -94,16 +100,20 @@ class MiniGameProvider with ChangeNotifier {
   bool get isLoaded => _isLoaded;
 
   Future<void> prepareForBreak() async {
-    _ensureDailyState();
-    if (_current == null) {
-      _current = _selectForToday();
+    final didUpdate = _ensureDailyState();
+    if (didUpdate) {
       await _persist();
+      notifyListeners();
     }
   }
 
   Future<MiniGameCompletionResult> completeCurrentMiniGame() async {
     _ensureDailyState();
-    final game = currentMiniGame;
+    if (_current == null) {
+      _current = _selectForToday();
+      _lastGeneratedDate ??= _normalizedDate(_clock());
+    }
+    final game = _current!;
     final today = _normalizedDate(_clock());
 
     var wasFirstCompletionToday = !_completedToday;
@@ -131,6 +141,7 @@ class MiniGameProvider with ChangeNotifier {
     if (!wasFirstCompletionToday) {
       // Repeated attempt in same day: streak unchanged, no rewards.
       await _persist();
+      notifyListeners();
       return MiniGameCompletionResult(
         wasFirstCompletionToday: false,
         streak: _streak,
@@ -141,6 +152,7 @@ class MiniGameProvider with ChangeNotifier {
 
     final unlockedBadgeId = _resolveBadgeIdForStreak(_streak);
     await _persist();
+    notifyListeners();
 
     return MiniGameCompletionResult(
       wasFirstCompletionToday: true,
@@ -157,27 +169,46 @@ class MiniGameProvider with ChangeNotifier {
     return _dailyMiniGames[index];
   }
 
-  void _ensureDailyState() {
-    if (_current == null && _isLoaded) {
-      _current = _selectForToday();
-    }
+  bool _ensureDailyState() {
     final today = _normalizedDate(_clock());
-    if (_lastCompletedDate == null) {
+    var didUpdate = false;
+
+    if (_lastGeneratedDate == null || !_lastGeneratedDate!.isAtSameMomentAs(today)) {
+      _current = _selectForToday();
+      _lastGeneratedDate = today;
+      if (_completedToday) {
+        _completedToday = false;
+      }
+      didUpdate = true;
+    } else if (_current == null) {
+      _current = _selectForToday();
+      didUpdate = true;
+    }
+
+    if (_lastCompletedDate != null) {
+      final lastCompleted = _normalizedDate(_lastCompletedDate!);
+      if (!today.isAtSameMomentAs(lastCompleted)) {
+        final gap = today.difference(lastCompleted).inDays;
+        if (gap > 1 && _streak != 0) {
+          _streak = 0;
+          didUpdate = true;
+        }
+        if (_completedToday) {
+          _completedToday = false;
+          didUpdate = true;
+        }
+      }
+    } else if (_completedToday) {
       _completedToday = false;
-      return;
+      didUpdate = true;
     }
 
-    final last = _normalizedDate(_lastCompletedDate!);
-    if (today.isAtSameMomentAs(last)) {
-      return;
+    if (_current == null) {
+      _current = _selectForToday();
+      didUpdate = true;
     }
 
-    final gap = today.difference(last).inDays;
-    if (gap > 1) {
-      _streak = 0;
-    }
-    _completedToday = false;
-    _current = _selectForToday();
+    return didUpdate;
   }
 
   String? _resolveBadgeIdForStreak(int streak) {
@@ -200,6 +231,10 @@ class MiniGameProvider with ChangeNotifier {
     if (lastCompletedIso != null) {
       _lastCompletedDate = DateTime.tryParse(lastCompletedIso);
     }
+    final lastGeneratedIso = prefs.getString(PrefsKeys.miniGameGeneratedOn);
+    if (lastGeneratedIso != null) {
+      _lastGeneratedDate = DateTime.tryParse(lastGeneratedIso);
+    }
     _completedToday = prefs.getBool(PrefsKeys.miniGameCompletedToday) ?? false;
     final storedId = prefs.getString(PrefsKeys.miniGameCurrentId);
     if (storedId != null) {
@@ -209,8 +244,11 @@ class MiniGameProvider with ChangeNotifier {
       );
     }
 
-    _ensureDailyState();
+    final didUpdate = _ensureDailyState();
     _isLoaded = true;
+    if (didUpdate) {
+      await _persist();
+    }
     notifyListeners();
   }
 
@@ -219,10 +257,19 @@ class MiniGameProvider with ChangeNotifier {
     await prefs.setInt(PrefsKeys.miniGameStreak, _streak);
     if (_lastCompletedDate != null) {
       await prefs.setString(PrefsKeys.miniGameLastCompleted, _lastCompletedDate!.toIso8601String());
+    } else {
+      await prefs.remove(PrefsKeys.miniGameLastCompleted);
     }
     await prefs.setBool(PrefsKeys.miniGameCompletedToday, _completedToday);
     if (_current != null) {
       await prefs.setString(PrefsKeys.miniGameCurrentId, _current!.id);
+    } else {
+      await prefs.remove(PrefsKeys.miniGameCurrentId);
+    }
+    if (_lastGeneratedDate != null) {
+      await prefs.setString(PrefsKeys.miniGameGeneratedOn, _lastGeneratedDate!.toIso8601String());
+    } else {
+      await prefs.remove(PrefsKeys.miniGameGeneratedOn);
     }
   }
 
@@ -231,6 +278,7 @@ class MiniGameProvider with ChangeNotifier {
       'streak': _streak,
       'completedToday': _completedToday,
       'lastCompletedDate': _lastCompletedDate?.toIso8601String(),
+      'lastGeneratedDate': _lastGeneratedDate?.toIso8601String(),
       'currentMiniGame': _current?.toJson(),
     };
   }

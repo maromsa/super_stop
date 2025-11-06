@@ -30,6 +30,7 @@ class PrefsKeys {
   static const String miniGameLastCompleted = 'mini_game_last_completed';
   static const String miniGameCompletedToday = 'mini_game_completed_today';
   static const String miniGameCurrentId = 'mini_game_current_id';
+  static const String miniGameGeneratedOn = 'mini_game_generated_on';
 
   static const String ambientMixFocusTrack = 'ambient_mix_focus_track';
   static const String ambientMixBreakTrack = 'ambient_mix_break_track';
