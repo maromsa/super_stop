@@ -42,31 +42,39 @@ class MoodCheckInScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     MoodSelector(
                       onMoodSelected: (Mood mood) async {
+                        final themeProvider = context.read<ThemeProvider>();
+                        final communityProvider = context.read<CommunityChallengeProvider>();
+                        final mysteryProvider = context.read<MysteryQuestProvider>();
+                        final companionProvider = context.read<VirtualCompanionProvider>();
+                        final coinProvider = context.read<CoinProvider>();
+
                         await journal.recordMood(mood);
-                        context.read<ThemeProvider>().applyMoodTheme(mood);
-                        context.read<CommunityChallengeProvider>().registerMoodContribution();
-                        final quests = context.read<MysteryQuestProvider>().registerMoodEntry(mood);
-                        context.read<VirtualCompanionProvider>().registerQuestCelebration('בדיקת מצב רוח');
-                        if (context.mounted) {
-                          for (final quest in quests) {
-                            if (quest.isClaimable) {
-                              final claimed = context.read<MysteryQuestProvider>().claimReward(
-                                quest.id,
-                                context.read<CoinProvider>(),
+                        themeProvider.applyMoodTheme(mood);
+                        communityProvider.registerMoodContribution();
+                        final quests = mysteryProvider.registerMoodEntry(mood);
+                        companionProvider.registerQuestCelebration('בדיקת מצב רוח');
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        for (final quest in quests) {
+                          if (quest.isClaimable) {
+                            final claimed = mysteryProvider.claimReward(
+                              quest.id,
+                              coinProvider,
+                            );
+                            if (claimed != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${quest.title} +${quest.rewardCoins} 🪙')),
                               );
-                              if (claimed != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('${quest.title} +${quest.rewardCoins} 🪙')),
-                                );
-                              }
                             }
                           }
                         }
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.moodCheckInThanks)),
-                          );
-                        }
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.moodCheckInThanks)),
+                        );
                       },
                     ),
                   const SizedBox(height: 32),

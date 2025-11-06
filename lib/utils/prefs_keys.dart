@@ -50,4 +50,14 @@ class PrefsKeys {
 
   static const String moodThemeCurrent = 'mood_theme_current';
   static const String moodThemeUnlocks = 'mood_theme_unlocks';
+
+  static const String collectiblesState = 'collectibles_state';
+  static const String dailyQuestState = 'daily_quest_state';
+  static const String dailyQuestGeneratedOn = 'daily_quest_generated_on';
+  static const String focusBurstState = 'focus_burst_state';
+  static const String calmPowerUpsState = 'calm_power_ups_state';
+  static const String socialTreasureState = 'social_treasure_state';
+  static const String habitStoryState = 'habit_story_state';
+  static const String bossBattleState = 'boss_battle_state';
+  static const String moodMusicMixerState = 'mood_music_mixer_state';
 }

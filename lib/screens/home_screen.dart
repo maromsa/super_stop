@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 
 import 'package:super_stop/l10n/app_localizations.dart';
 
+import '../models/calm_power_up.dart';
 import '../models/mood_entry.dart';
 import '../providers/coin_provider.dart';
 import '../providers/community_challenge_provider.dart';
 import '../providers/daily_goals_provider.dart';
 import '../providers/level_provider.dart';
+import '../providers/calm_mode_provider.dart';
+import '../providers/collectible_provider.dart';
+import '../providers/daily_quest_provider.dart';
 import '../providers/mood_journal_provider.dart';
 import '../providers/mystery_quest_provider.dart';
 import '../providers/virtual_companion_provider.dart';
@@ -372,10 +376,11 @@ class HomeScreen extends StatelessWidget {
                               ],
                             ),
                           );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      _buildMysteryQuestSection(context, l10n),
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        _buildMysteryQuestSection(context, l10n),
+                        _buildDailyQuestPreview(context, l10n),
                       const SizedBox(height: 20),
                       Consumer<MoodJournalProvider>(
                         builder: (context, journal, _) {
@@ -539,6 +544,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 30),
+                      _buildEngagementHub(context),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -777,6 +784,137 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildDailyQuestPreview(BuildContext context, AppLocalizations l10n) {
+    return Consumer<DailyQuestProvider>(
+      builder: (context, provider, _) {
+        if (!provider.isLoaded) {
+          return const SizedBox.shrink();
+        }
+        final quests = provider.quests;
+        if (quests.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final completed = quests.where((quest) => quest.isCompleted).length;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.homeDailyQuestTitle,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text('$completed/${quests.length}')
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: quests
+                        .map(
+                          (quest) => Chip(
+                            avatar: Icon(
+                              quest.isCreative ? Icons.palette : Icons.sports_esports,
+                              size: 16,
+                              color: quest.isCompleted ? Colors.green : Colors.blueGrey,
+                            ),
+                            label: Text(quest.title),
+                            backgroundColor: quest.isCompleted ? Colors.green.shade100 : Colors.blueGrey.shade50,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.dailyQuests),
+                      icon: const Icon(Icons.arrow_forward),
+                      label: Text(l10n.homeDailyQuestOpen),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEngagementHub(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.homeAdventureHubTitle,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _EngagementButton(
+                      label: l10n.homeAdventureFocus,
+                      icon: Icons.bolt,
+                      route: AppRoutes.focusBurst,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureCalm,
+                      icon: Icons.self_improvement,
+                      route: AppRoutes.calmMode,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureSocial,
+                      icon: Icons.travel_explore,
+                      route: AppRoutes.socialTreasure,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureMixer,
+                      icon: Icons.music_note,
+                      route: AppRoutes.moodMixer,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureStory,
+                      icon: Icons.menu_book,
+                      route: AppRoutes.habitStory,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureBoss,
+                      icon: Icons.security,
+                      route: AppRoutes.bossBattles,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureCollectibles,
+                      icon: Icons.star_rate,
+                      route: AppRoutes.collectibles,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+    );
+  }
+
   void _handleQuestProgress(BuildContext context, List<MysteryQuest> quests) {
     if (quests.isEmpty) {
       return;
@@ -830,16 +968,34 @@ class HomeScreen extends StatelessWidget {
   }
 
   Future<void> _handleGamePlayed(BuildContext context, String gameId) async {
+    final coinProvider = Provider.of<CoinProvider>(context, listen: false);
     final goalsProvider = Provider.of<DailyGoalsProvider>(context, listen: false);
     final levelProvider = Provider.of<LevelProvider>(context, listen: false);
     final achievementService = Provider.of<AchievementService>(context, listen: false);
     final communityProvider = Provider.of<CommunityChallengeProvider>(context, listen: false);
     final mysteryQuestProvider = Provider.of<MysteryQuestProvider>(context, listen: false);
+    final dailyQuestProvider = Provider.of<DailyQuestProvider>(context, listen: false);
+    final collectibleProvider = Provider.of<CollectibleProvider>(context, listen: false);
+    final calmModeProvider = Provider.of<CalmModeProvider>(context, listen: false);
     
     goalsProvider.markGamePlayed();
     communityProvider.registerGameContribution();
     final completedQuests = mysteryQuestProvider.registerGamePlayed(gameId);
     final leveledUp = await levelProvider.addExperience(10);
+    await dailyQuestProvider.registerSkillEvent(
+      gameId,
+      coinProvider: coinProvider,
+      collectibleProvider: collectibleProvider,
+    );
+    final consumedPowerUp = await calmModeProvider.consumePowerUp(CalmPowerUpType.bonusCoins);
+    if (consumedPowerUp != null) {
+      coinProvider.addCoins(consumedPowerUp.value);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('בונוס רגוע עקף את המשחק! +${consumedPowerUp.value} 🪙')),
+        );
+      }
+    }
     
     final achievementId = await achievementService.markGamePlayed(gameId);
     
@@ -1082,6 +1238,30 @@ class _CompactButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+}
+
+class _EngagementButton extends StatelessWidget {
+  const _EngagementButton({required this.label, required this.icon, required this.route});
+
+  final String label;
+  final IconData icon;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 150,
+      child: ElevatedButton.icon(
+        onPressed: () => Navigator.of(context).pushNamed(route),
+        icon: Icon(icon),
+        label: Text(label, textAlign: TextAlign.center),
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         ),
       ),
     );
