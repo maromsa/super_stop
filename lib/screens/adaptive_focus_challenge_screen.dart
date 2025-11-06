@@ -78,7 +78,7 @@ class _AdaptiveFocusChallengeScreenState extends State<AdaptiveFocusChallengeScr
     if (stopwatch == null) {
       return;
     }
-    final reactionMs = reacted ? stopwatch.elapsedMilliseconds.toDouble() : 2000;
+    final reactionMs = reacted ? stopwatch.elapsedMilliseconds.toDouble() : 2000.0;
     _reactionTimes.add(reactionMs);
     _hits.add(reacted);
     setState(() {
@@ -305,7 +305,7 @@ class _PlanHeader extends StatelessWidget {
               const SizedBox(height: 12),
               Text('ממוצע אחרון: ${average.toStringAsFixed(0)} מ״ש'),
               LinearProgressIndicator(
-                value: max(0, (1500 - average) / 1500).clamp(0.0, 1.0),
+                value: max<double>(0, (1500 - average) / 1500).clamp(0.0, 1.0),
                 minHeight: 8,
               ),
             ],
