@@ -53,4 +53,19 @@ void main() {
     expect(provider.streak, greaterThanOrEqualTo(7));
     expect(badgeId, anyOf('mini_badge_bronze', 'mini_badge_silver', 'mini_badge_gold'));
   });
+
+  test('daily mini game rotates even without completing previous day', () async {
+    var now = DateTime(2025, 1, 10);
+    final provider = MiniGameProvider(clock: () => now);
+
+    await provider.prepareForBreak();
+    final firstGameId = provider.currentMiniGame.id;
+
+    now = now.add(const Duration(days: 1));
+    await provider.prepareForBreak();
+    final nextGameId = provider.currentMiniGame.id;
+
+    expect(nextGameId, isNot(equals(firstGameId)));
+    expect(provider.completedToday, isFalse);
+  });
 }
