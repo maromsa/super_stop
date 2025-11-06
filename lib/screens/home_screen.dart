@@ -17,6 +17,7 @@ import '../providers/mystery_quest_provider.dart';
 import '../providers/virtual_companion_provider.dart';
 import '../router/app_routes.dart';
 import '../services/achievement_service.dart';
+import '../services/firebase_auth_service.dart';
 import '../widgets/achievement_popup.dart';
 import '../widgets/ambient_background.dart';
 import '../widgets/mood_theme_carousel.dart';
@@ -192,40 +193,51 @@ class HomeScreen extends StatelessWidget {
         Theme.of(context).iconTheme.color ??
         Colors.white;
 
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.homeTitle),
-          centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Chip(
-                backgroundColor: Colors.amber.shade100,
-                avatar: const Icon(Icons.monetization_on, color: Colors.amber),
-                label: Consumer<CoinProvider>(
-                  builder: (context, coinProvider, child) {
-                    return Text(
-                      '${coinProvider.coins}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    );
-                  },
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.homeTitle),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Chip(
+              backgroundColor: Colors.amber.shade100,
+              avatar: const Icon(Icons.monetization_on, color: Colors.amber),
+              label: Consumer<CoinProvider>(
+                builder: (context, coinProvider, child) {
+                  return Text(
+                    '${coinProvider.coins}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  );
+                },
               ),
             ),
-            IconButton(
-              icon: Text(
-                '?',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: iconColor,
-                ),
+          ),
+          IconButton(
+            icon: Text(
+              '?',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: iconColor,
               ),
-              tooltip: l10n.homeInstructionsTooltip,
-              onPressed: () => _showInstructionsDialog(context),
             ),
-          ],
-        ),
+            tooltip: l10n.homeInstructionsTooltip,
+            onPressed: () => _showInstructionsDialog(context),
+          ),
+          Consumer<FirebaseAuthService>(
+            builder: (context, authService, _) {
+              return IconButton(
+                icon: Icon(Icons.logout, color: iconColor),
+                tooltip: l10n.authSignOutTooltip,
+                onPressed: authService.isInitialSyncInProgress
+                    ? null
+                    : () => authService.signOut(),
+              );
+            },
+          ),
+        ],
+      ),
         body: Stack(
           children: [
             Positioned.fill(
