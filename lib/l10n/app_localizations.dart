@@ -113,6 +113,21 @@ abstract class AppLocalizations {
   /// **'Achievements'**
   String get achievementsButton;
 
+  /// No description provided for @authSignInTitle.
+  String get authSignInTitle;
+
+  /// No description provided for @authSignInSubtitle.
+  String get authSignInSubtitle;
+
+  /// No description provided for @authSignInButton.
+  String get authSignInButton;
+
+  /// No description provided for @authSignOutTooltip.
+  String get authSignOutTooltip;
+
+  /// No description provided for @authSyncInProgress.
+  String get authSyncInProgress;
+
   String get homeInstructionsTooltip;
   String get homeInstructionsTitle;
   String get homeInstructionsImpulseTitle;

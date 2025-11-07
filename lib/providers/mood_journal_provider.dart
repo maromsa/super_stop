@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/mood_entry.dart';
+import '../models/mood_journal_state_snapshot.dart';
 import '../utils/prefs_keys.dart';
 
 class MoodJournalProvider with ChangeNotifier {
@@ -12,6 +15,7 @@ class MoodJournalProvider with ChangeNotifier {
 
   final DateTime Function() _clock;
   final List<MoodEntry> _entries = <MoodEntry>[];
+  final Completer<void> _readyCompleter = Completer<void>();
   bool _onboardingCompleted = false;
   DateTime? _lastCheckIn;
   bool _isReady = false;
@@ -21,6 +25,13 @@ class MoodJournalProvider with ChangeNotifier {
   MoodEntry? get latestEntry => _entries.isEmpty ? null : _entries.last;
   bool get hasCompletedOnboarding => _onboardingCompleted;
   bool get isReady => _isReady;
+  Future<void> get ready => _readyCompleter.future;
+
+  MoodJournalStateSnapshot get snapshot => MoodJournalStateSnapshot(
+        entries: List<MoodEntry>.from(_entries),
+        onboardingCompleted: _onboardingCompleted,
+        lastCheckIn: _lastCheckIn,
+      );
 
   bool get hasCheckInToday {
     if (_lastCheckIn == null) {
@@ -33,7 +44,6 @@ class MoodJournalProvider with ChangeNotifier {
   }
 
   Future<void> recordMood(Mood mood) async {
-    final prefs = await SharedPreferences.getInstance();
     final now = _clock();
     final entry = MoodEntry(mood: mood, timestamp: now);
     _entries.add(entry);
@@ -41,8 +51,7 @@ class MoodJournalProvider with ChangeNotifier {
       _entries.removeAt(0);
     }
     _lastCheckIn = now;
-    await prefs.setString(PrefsKeys.moodEntries, MoodEntry.encodeList(_entries));
-    await prefs.setString(PrefsKeys.lastMoodCheckIn, now.toIso8601String());
+    await _persistState();
     notifyListeners();
   }
 
@@ -56,9 +65,8 @@ class MoodJournalProvider with ChangeNotifier {
   }
 
   Future<void> markOnboardingComplete() async {
-    final prefs = await SharedPreferences.getInstance();
     _onboardingCompleted = true;
-    await prefs.setBool(PrefsKeys.onboardingCompleted, true);
+    await _persistState();
     notifyListeners();
   }
 
@@ -68,26 +76,67 @@ class MoodJournalProvider with ChangeNotifier {
     _lastCheckIn = null;
     await prefs.remove(PrefsKeys.moodEntries);
     await prefs.remove(PrefsKeys.lastMoodCheckIn);
+    await prefs.setBool(PrefsKeys.onboardingCompleted, _onboardingCompleted);
     notifyListeners();
   }
 
-  Future<void> _hydrate() async {
-    final prefs = await SharedPreferences.getInstance();
-    _onboardingCompleted = prefs.getBool(PrefsKeys.onboardingCompleted) ?? false;
-
-    final encodedEntries = prefs.getString(PrefsKeys.moodEntries);
-    if (encodedEntries != null && encodedEntries.isNotEmpty) {
-      _entries
-        ..clear()
-        ..addAll(MoodEntry.decodeList(encodedEntries)..sort((a, b) => a.timestamp.compareTo(b.timestamp)));
+  Future<void> applySnapshot(
+    MoodJournalStateSnapshot snapshot, {
+    bool persistLocally = true,
+    bool notify = true,
+  }) async {
+    final entries = List<MoodEntry>.from(snapshot.entries)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    _entries
+      ..clear()
+      ..addAll(entries);
+    _onboardingCompleted = snapshot.onboardingCompleted;
+    _lastCheckIn = snapshot.lastCheckIn;
+    if (persistLocally) {
+      await _persistState();
     }
-
-    final lastCheckInString = prefs.getString(PrefsKeys.lastMoodCheckIn);
-    if (lastCheckInString != null) {
-      _lastCheckIn = DateTime.tryParse(lastCheckInString);
-    }
-
     _isReady = true;
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> _persistState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(PrefsKeys.moodEntries, MoodEntry.encodeList(_entries));
+    if (_lastCheckIn != null) {
+      await prefs.setString(PrefsKeys.lastMoodCheckIn, _lastCheckIn!.toIso8601String());
+    } else {
+      await prefs.remove(PrefsKeys.lastMoodCheckIn);
+    }
+    await prefs.setBool(PrefsKeys.onboardingCompleted, _onboardingCompleted);
+  }
+
+  Future<void> _hydrate() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _onboardingCompleted = prefs.getBool(PrefsKeys.onboardingCompleted) ?? false;
+
+      final encodedEntries = prefs.getString(PrefsKeys.moodEntries);
+      if (encodedEntries != null && encodedEntries.isNotEmpty) {
+        _entries
+          ..clear()
+          ..addAll(
+            MoodEntry.decodeList(encodedEntries)..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
+          );
+      }
+
+      final lastCheckInString = prefs.getString(PrefsKeys.lastMoodCheckIn);
+      if (lastCheckInString != null) {
+        _lastCheckIn = DateTime.tryParse(lastCheckInString);
+      }
+
+      _isReady = true;
+      notifyListeners();
+    } finally {
+      if (!_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
+      }
+    }
   }
 }

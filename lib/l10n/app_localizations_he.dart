@@ -18,6 +18,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get achievementsButton => 'הישגים';
 
   @override
+  String get authSignInTitle => 'ברוכים הבאים ל-Super Stop';
+
+  @override
+  String get authSignInSubtitle => 'התחברו עם חשבון Google כדי לסנכרן את ההתקדמות בכל המכשירים.';
+
+  @override
+  String get authSignInButton => 'המשך עם Google';
+
+  @override
+  String get authSignOutTooltip => 'התנתקות';
+
+  @override
+  String get authSyncInProgress => 'מסנכרן את ההתקדמות האחרונה...';
+
+  @override
   String get homeInstructionsTooltip => 'איך משחקים?';
 
   @override
