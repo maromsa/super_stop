@@ -8,11 +8,26 @@ import '../providers/mood_journal_provider.dart';
 import 'user_state_repository.dart';
 
 class FirebaseAuthService extends ChangeNotifier {
-  FirebaseAuthService({GoogleSignIn? googleSignIn})
-      : _googleSignIn = googleSignIn ?? GoogleSignIn();
+  FirebaseAuthService({GoogleSignIn? googleSignIn, bool bypassAuth = false})
+      : _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _bypassAuth = bypassAuth,
+        _auth = bypassAuth ? null : FirebaseAuth.instance {
+    if (_bypassAuth) {
+      _initialAuthEventReceived = true;
+    } else {
+      _authSubscription = _auth!.authStateChanges().listen(
+        _handleAuthStateChanged,
+        onError: (Object error, StackTrace stackTrace) {
+          _errorMessage = error.toString();
+          notifyListeners();
+        },
+      );
+    }
+  }
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth? _auth;
   final GoogleSignIn _googleSignIn;
+  final bool _bypassAuth;
 
   MoodJournalProvider? _moodJournalProvider;
   UserStateRepository? _userStateRepository;
@@ -30,10 +45,11 @@ class FirebaseAuthService extends ChangeNotifier {
 
   User? get user => _user;
   bool get isSigningIn => _isSigningIn;
-  bool get isInitialSyncInProgress => _isInitialSyncInProgress;
-  bool get hasCompletedInitialAuth => _initialAuthEventReceived;
+  bool get isInitialSyncInProgress => _bypassAuth ? false : _isInitialSyncInProgress;
+  bool get hasCompletedInitialAuth => _bypassAuth || _initialAuthEventReceived;
   String? get errorMessage => _errorMessage;
-  bool get isBusy => _isSigningIn || !_initialAuthEventReceived || _isInitialSyncInProgress;
+  bool get isAuthBypassed => _bypassAuth;
+  bool get isBusy => _isSigningIn || !hasCompletedInitialAuth || isInitialSyncInProgress;
 
   void updateDependencies({
     required MoodJournalProvider moodJournalProvider,
@@ -42,18 +58,16 @@ class FirebaseAuthService extends ChangeNotifier {
     if (_moodJournalProvider != moodJournalProvider) {
       _moodJournalProvider?.removeListener(_onMoodJournalChanged);
       _moodJournalProvider = moodJournalProvider;
-      _moodJournalProvider?.addListener(_onMoodJournalChanged);
+      if (!_bypassAuth) {
+        _moodJournalProvider?.addListener(_onMoodJournalChanged);
+      }
     }
+
+    if (_bypassAuth) {
+      return;
+    }
+
     _userStateRepository = userStateRepository;
-
-    _authSubscription ??= _auth.authStateChanges().listen(
-      (user) => _handleAuthStateChanged(user),
-      onError: (Object error, StackTrace stackTrace) {
-        _errorMessage = error.toString();
-        notifyListeners();
-      },
-    );
-
     _maybeStartInitialSync();
   }
 
@@ -64,6 +78,13 @@ class FirebaseAuthService extends ChangeNotifier {
     _errorMessage = null;
     _isSigningIn = true;
     notifyListeners();
+
+    if (_auth == null) {
+      _isSigningIn = false;
+      notifyListeners();
+      return;
+    }
+
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -76,7 +97,7 @@ class FirebaseAuthService extends ChangeNotifier {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
+      await _auth!.signInWithCredential(credential);
     } on FirebaseAuthException catch (error) {
       _errorMessage = error.message ?? error.code;
     } catch (error) {
@@ -88,8 +109,10 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
-    await _googleSignIn.signOut();
+    if (_auth != null) {
+      await _auth!.signOut();
+      await _googleSignIn.signOut();
+    }
     _pendingInitialSync = false;
     _pauseSync = false;
     _debounceTimer?.cancel();
@@ -104,6 +127,10 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<void> _handleAuthStateChanged(User? firebaseUser) async {
+    if (_bypassAuth) {
+      return;
+    }
+
     _initialAuthEventReceived = true;
     _user = firebaseUser;
 
@@ -122,6 +149,9 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<void> _maybeStartInitialSync() async {
+    if (_bypassAuth) {
+      return;
+    }
     if (!_pendingInitialSync) {
       return;
     }
@@ -160,7 +190,7 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   void _onMoodJournalChanged() {
-    if (_pauseSync || !_initialAuthEventReceived) {
+    if (_bypassAuth || _pauseSync || !_initialAuthEventReceived) {
       return;
     }
     if (_user == null || _userStateRepository == null) {
@@ -171,6 +201,9 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<void> _uploadSnapshot() async {
+    if (_bypassAuth) {
+      return;
+    }
     final user = _user;
     final repository = _userStateRepository;
     final provider = _moodJournalProvider;

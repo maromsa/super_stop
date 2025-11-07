@@ -227,6 +227,9 @@ class HomeScreen extends StatelessWidget {
           ),
           Consumer<FirebaseAuthService>(
             builder: (context, authService, _) {
+              if (authService.isAuthBypassed || authService.user == null) {
+                return const SizedBox.shrink();
+              }
               return IconButton(
                 icon: Icon(Icons.logout, color: iconColor),
                 tooltip: l10n.authSignOutTooltip,

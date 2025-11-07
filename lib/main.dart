@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/adaptive_focus_challenge_provider.dart';
@@ -31,69 +32,92 @@ import 'services/user_state_repository.dart';
 import 'theme_provider.dart';
 import 'firebase_options.dart';
 
+const bool kBypassFirebaseAuth =
+    bool.fromEnvironment('BYPASS_FIREBASE_AUTH') || bool.fromEnvironment('FLUTTER_TEST');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!kBypassFirebaseAuth) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AchievementService()),
-        ChangeNotifierProvider(create: (_) => CoinProvider()),
-        ChangeNotifierProvider(create: (_) => CollectibleProvider()),
-        ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
-        ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
-        ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
-        ChangeNotifierProvider(create: (_) => DailyQuestProvider()),
-        ChangeNotifierProvider(create: (_) => CalmModeProvider()),
-        ChangeNotifierProvider(create: (_) => SocialTreasureProvider()),
-        ChangeNotifierProvider(create: (_) => BossBattleProvider()),
-        ChangeNotifierProvider(create: (_) => MoodMusicMixerProvider()),
-        ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
-          create: (_) => VirtualCompanionProvider(),
-          update: (_, goals, achievements, companion) {
-            companion ??= VirtualCompanionProvider();
-            companion.updateFrom(goals, achievements);
-            return companion;
-          },
-        ),
-        ChangeNotifierProxyProvider2<DailyGoalsProvider, CollectibleProvider, HabitStoryProvider>(
-          create: (_) => HabitStoryProvider(),
-          update: (_, goals, collectibles, story) {
-            story ??= HabitStoryProvider();
-            unawaited(story.updateFromGoals(goals, collectibles: collectibles));
-            return story;
-          },
-        ),
-        ChangeNotifierProvider(create: (_) => LevelProvider()),
-        ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
-        Provider<UserStateRepository>(
-          create: (_) => UserStateRepository(FirebaseFirestore.instance),
-        ),
-        ChangeNotifierProxyProvider2<MoodJournalProvider, UserStateRepository, FirebaseAuthService>(
-          create: (_) => FirebaseAuthService(),
-          update: (_, journal, repository, authService) {
-            authService ??= FirebaseAuthService();
-            authService.updateDependencies(
-              moodJournalProvider: journal,
-              userStateRepository: repository,
-            );
-            return authService;
-          },
-        ),
-        ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
-          create: (_) => AdaptiveFocusChallengeProvider(),
-          update: (_, journal, provider) {
-            provider ??= AdaptiveFocusChallengeProvider();
-            provider.updateFromMoodJournal(journal);
-            return provider;
-          },
-        ),
-      ],
+      providers: _buildProviders(),
       child: const MyApp(),
     ),
   );
+}
+
+List<SingleChildWidget> _buildProviders() {
+  final providers = <SingleChildWidget>[
+    ChangeNotifierProvider(create: (_) => ThemeProvider()),
+    ChangeNotifierProvider(create: (_) => AchievementService()),
+    ChangeNotifierProvider(create: (_) => CoinProvider()),
+    ChangeNotifierProvider(create: (_) => CollectibleProvider()),
+    ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
+    ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
+    ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
+    ChangeNotifierProvider(create: (_) => DailyQuestProvider()),
+    ChangeNotifierProvider(create: (_) => CalmModeProvider()),
+    ChangeNotifierProvider(create: (_) => SocialTreasureProvider()),
+    ChangeNotifierProvider(create: (_) => BossBattleProvider()),
+    ChangeNotifierProvider(create: (_) => MoodMusicMixerProvider()),
+    ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
+      create: (_) => VirtualCompanionProvider(),
+      update: (_, goals, achievements, companion) {
+        companion ??= VirtualCompanionProvider();
+        companion.updateFrom(goals, achievements);
+        return companion;
+      },
+    ),
+    ChangeNotifierProxyProvider2<DailyGoalsProvider, CollectibleProvider, HabitStoryProvider>(
+      create: (_) => HabitStoryProvider(),
+      update: (_, goals, collectibles, story) {
+        story ??= HabitStoryProvider();
+        unawaited(story.updateFromGoals(goals, collectibles: collectibles));
+        return story;
+      },
+    ),
+    ChangeNotifierProvider(create: (_) => LevelProvider()),
+    ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
+  ];
+
+  if (kBypassFirebaseAuth) {
+    providers.add(
+      ChangeNotifierProvider(create: (_) => FirebaseAuthService(bypassAuth: true)),
+    );
+  } else {
+    providers.addAll([
+      Provider<UserStateRepository>(
+        create: (_) => UserStateRepository(FirebaseFirestore.instance),
+      ),
+      ChangeNotifierProxyProvider2<MoodJournalProvider, UserStateRepository, FirebaseAuthService>(
+        create: (_) => FirebaseAuthService(),
+        update: (_, journal, repository, authService) {
+          authService ??= FirebaseAuthService();
+          authService.updateDependencies(
+            moodJournalProvider: journal,
+            userStateRepository: repository,
+          );
+          return authService;
+        },
+      ),
+    ]);
+  }
+
+  providers.add(
+    ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
+      create: (_) => AdaptiveFocusChallengeProvider(),
+      update: (_, journal, provider) {
+        provider ??= AdaptiveFocusChallengeProvider();
+        provider.updateFromMoodJournal(journal);
+        return provider;
+      },
+    ),
+  );
+
+  return providers;
 }
 
 class MyApp extends StatelessWidget {
@@ -124,10 +148,14 @@ class _AppLaunchDecider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    if (kBypassFirebaseAuth) {
+      return _buildJournalDrivenContent(context, l10n);
+    }
+
     return Consumer<FirebaseAuthService>(
       builder: (context, authService, _) {
-        final l10n = AppLocalizations.of(context);
-
         if (!authService.hasCompletedInitialAuth || authService.isInitialSyncInProgress) {
           return _LoadingScaffold(message: l10n?.authSyncInProgress);
         }
@@ -136,22 +164,26 @@ class _AppLaunchDecider extends StatelessWidget {
           return const SignInScreen();
         }
 
-        return Consumer<MoodJournalProvider>(
-          builder: (context, journal, __) {
-            if (!journal.isReady) {
-              return _LoadingScaffold(message: l10n?.authSyncInProgress);
-            }
-
-            if (journal.hasCompletedOnboarding) {
-              return const HomeScreen();
-            }
-
-            return const OnboardingScreen();
-          },
-        );
+        return _buildJournalDrivenContent(context, l10n);
       },
     );
   }
+}
+
+Widget _buildJournalDrivenContent(BuildContext context, AppLocalizations? l10n) {
+  return Consumer<MoodJournalProvider>(
+    builder: (context, journal, __) {
+      if (!journal.isReady) {
+        return _LoadingScaffold(message: l10n?.authSyncInProgress);
+      }
+
+      if (journal.hasCompletedOnboarding) {
+        return const HomeScreen();
+      }
+
+      return const OnboardingScreen();
+    },
+  );
 }
 
 class _LoadingScaffold extends StatelessWidget {

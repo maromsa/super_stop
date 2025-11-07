@@ -22,6 +22,7 @@ import 'package:super_stop/providers/social_treasure_provider.dart';
 import 'package:super_stop/providers/virtual_companion_provider.dart';
 import 'package:super_stop/screens/home_screen.dart';
 import 'package:super_stop/services/achievement_service.dart';
+import 'package:super_stop/services/firebase_auth_service.dart';
 import 'package:super_stop/theme_provider.dart';
 
 void main() {
@@ -65,6 +66,7 @@ void main() {
             ),
             ChangeNotifierProvider(create: (_) => LevelProvider()),
             ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
+            ChangeNotifierProvider(create: (_) => FirebaseAuthService(bypassAuth: true)),
             ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
               create: (_) => AdaptiveFocusChallengeProvider(),
               update: (_, journal, provider) {
