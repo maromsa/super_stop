@@ -18,6 +18,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get achievementsButton => 'הישגים';
 
   @override
+  String get authSignInTitle => 'ברוכים הבאים ל-Super Stop';
+
+  @override
+  String get authSignInSubtitle => 'התחברו עם חשבון Google כדי לסנכרן את ההתקדמות בכל המכשירים.';
+
+  @override
+  String get authSignInButton => 'המשך עם Google';
+
+  @override
+  String get authSignOutTooltip => 'התנתקות';
+
+  @override
+  String get authSyncInProgress => 'מסנכרן את ההתקדמות האחרונה...';
+
+  @override
   String get homeInstructionsTooltip => 'איך משחקים?';
 
   @override
@@ -96,6 +111,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get homeAdventureMixer => 'מערבל מוזיקה';
 
   @override
+  String get homeAdventureAiLab => 'מעבדת ה-AI';
+
+  @override
   String get homeAdventureStory => 'קומיקס רצף';
 
   @override
@@ -103,6 +121,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get homeAdventureCollectibles => 'אוסף פרסים';
+
+  @override
+  String get homeAiLabPreviewTitle => 'ניצוץ ה-AI של נובה';
+
+  @override
+  String get homeAiLabPreviewEmpty => 'הפעילו תכנית חכמה כדי לפתוח את השילוב הבא.';
+
+  @override
+  String get homeAiLabPreviewDescription => 'כאן יופיעו משימות מותאמות ברגע שנובה תסיים לחשוב.';
+
+  @override
+  String homeAiLabPreviewEnergy(String label) => 'מצב אנרגיה: $label';
+
+  @override
+  String get homeAiLabPreviewOpen => 'פתחו את מעבדת ה-AI';
+
+  @override
+  String get homeAiLabPreviewLearnMore => 'מה ה-AI עושה בשבילי';
 
   @override
   String get homeMoodSelectorTitle => 'בחרו את אווירת האפליקציה';
@@ -153,6 +189,57 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dailySparkBreathBody => 'קחו הפסקת נשימה רגועה בעזרת התרגיל המודרך.';
 
   @override
+  String get aiLabTitle => 'מעבדת ה-AI';
+
+  @override
+  String get aiLabSubtitle => 'ה-AI של נובה בוחר משימות לפי מצב הרוח, האנרגיה והרצף שלכם.';
+
+  @override
+  String get aiLabRefreshTooltip => 'רענון תכנית AI';
+
+  @override
+  String aiLabEnergyLabel(String label) => 'מצב אנרגיה: $label';
+
+  @override
+  String get aiLabFocusSection => 'משימת ריכוז';
+
+  @override
+  String get aiLabFocusDescription => 'התחילו במסלול הריכוז שמתאים לאנרגיה של עכשיו.';
+
+  @override
+  String get aiLabBreakSection => 'הפסקת רענון';
+
+  @override
+  String get aiLabBreakDescription => 'השיבו את החושים לפני שחוזרים לאתגר הבא.';
+
+  @override
+  String get aiLabChallengeSection => 'אתגר של נובה';
+
+  @override
+  String get aiLabChallengeDescription => 'נובה מזמינה אתכם לשלב את השלבים האלה לבונוס נוצץ.';
+
+  @override
+  String get aiLabMissionTitle => 'משימות מיקרו להיום';
+
+  @override
+  String aiLabGeneratedAt(String time) => 'נוצר בשעה $time';
+
+  @override
+  String get aiLabEmptyState => 'נובה מחכה ליצור עבורך תכנית מותאמת. לחצו על יצירה כדי להתחיל.';
+
+  @override
+  String get aiLabGenerateButton => 'יצירת תכנית';
+
+  @override
+  String get aiLabLoadingLabel => 'חושבת...';
+
+  @override
+  String get aiLabGoButton => 'קדימה';
+
+  @override
+  String get aiLabRefreshButton => 'רעיון חדש';
+
+  @override
   String get homeToolBreathing => 'תרגיל נשימה';
 
   @override
@@ -160,6 +247,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get homeToolProgress => 'לוח התקדמות';
+
+  @override
+  String get homeToolFocusGarden => 'גינת הפוקוס';
 
   @override
   String get homeButtonAchievements => 'הישגים';
@@ -193,6 +283,109 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get homeStroopModeAccuracy => 'דיוק (טעות אחת פוסלת)';
+
+  @override
+  String get focusGardenTitle => 'גינת הפוקוס של נובה';
+
+  @override
+  String get focusGardenStageSeed => 'זרע כוכב';
+
+  @override
+  String get focusGardenStageSprout => 'נבט זוהר';
+
+  @override
+  String get focusGardenStageBloom => 'פריחת אור';
+
+  @override
+  String get focusGardenStageTree => 'עץ השמירה';
+
+  @override
+  String get focusGardenStageNova => 'חופת נובה';
+
+  @override
+  String get focusGardenStageSeedDescription => 'המסע מתחיל עם זרע סקרן שסופג כל שביב ריכוז.';
+
+  @override
+  String get focusGardenStageSproutDescription =>
+      'עלים קטנים מבצבצים כשאתם מגיעים בעקביות—המשיכו להזין באור!';
+
+  @override
+  String get focusGardenStageBloomDescription =>
+      'פרחים צבעוניים פורחים בזכות רגעי הרוגע והניצחונות הממוקדים שלכם.';
+
+  @override
+  String get focusGardenStageTreeDescription =>
+      'עץ יציב מזדקף עם כל אתגר שאתם מנצחים וכל הרגל שאתם מטפחים.';
+
+  @override
+  String get focusGardenStageNovaDescription =>
+      'הגינה קורנת כמו קבוצת כוכבים—אתם עוזרים לנובה להאיר את כל הגלקסיה!';
+
+  @override
+  String focusGardenProgressLabel(int current, int goal) => '$current מתוך $goal אנרגיית זוהר';
+
+  @override
+  String focusGardenNextGoal(int sunlight) => 'עוד $sunlight זוהר כדי לפתוח את השלב הבא';
+
+  @override
+  String get focusGardenMaxStageReached => 'הגינה זורחת במלוא העוצמה!';
+
+  @override
+  String get focusGardenSunlightStat => 'אנרגיית זוהר';
+
+  @override
+  String get focusGardenFocusMinutesStat => 'דקות ריכוז';
+
+  @override
+  String get focusGardenDewStat => 'טיפות נובה';
+
+  @override
+  String get focusGardenWaterCardTitle => 'בוסט אבקת כוכבים';
+
+  @override
+  String focusGardenWaterCardSubtitle(int boost) => 'השתמשו בטיפת טל כדי להוסיף $boost זוהר מיד.';
+
+  @override
+  String get focusGardenWaterButton => 'פזרו אבקת כוכבים';
+
+  @override
+  String focusGardenDailyLimitLabel(int used, int max) => 'בוסטים היום: $used/$max';
+
+  @override
+  String focusGardenCurrentDew(int dew) => 'טיפות שנשמרו: $dew';
+
+  @override
+  String focusGardenWaterSuccess(int sunlight) => 'בזק זוהר! +$sunlight אנרגיה';
+
+  @override
+  String get focusGardenWaterUnavailable => 'אין עוד טיפות זמינות כרגע—נסו עוד סשן ריכוז או נשימה.';
+
+  @override
+  String focusGardenStageUnlocked(String stage) => 'הגינה עלתה לשלב $stage!';
+
+  @override
+  String focusGardenStageCelebration(int coins) => 'נובה קופצת משמחה! קיבלתם $coins מטבעות בונוס.';
+
+  @override
+  String get focusGardenCelebrateOkay => 'יש!';
+
+  @override
+  String focusGardenSunlightEarned(int sunlight) => '+$sunlight אנרגיית זוהר נאספה';
+
+  @override
+  String focusGardenDewEarned(int dew) => 'תפסתם $dew טיפת נובה נוצצת!';
+
+  @override
+  String get focusGardenTipTitle => 'טיפ יומי לגינה';
+
+  @override
+  String get focusGardenTipFocus => 'נסו פרץ ריכוז של 5 דקות כדי להציף את הגינה בשמש.';
+
+  @override
+  String get focusGardenTipBreath => 'השלימו 3 מחזורי נשימה רגועים כדי לאסוף טיפת טל.';
+
+  @override
+  String get focusGardenTipKindness => 'שלחו הודעה מעודדת—נובה אוהבת אנרגיה חיובית בגינה!';
 
   @override
   String get focusAppBarTitle => 'טיימר ריכוז';

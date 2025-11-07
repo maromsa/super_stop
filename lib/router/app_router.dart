@@ -3,11 +3,13 @@ import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../screens/achievements_screen.dart';
 import '../screens/adaptive_focus_challenge_screen.dart';
+import '../screens/ai_spark_lab_screen.dart';
 import '../screens/breathing_exercise_screen.dart';
 import '../screens/calm_mode_screen.dart';
 import '../screens/collectible_gallery_screen.dart';
 import '../screens/daily_quest_screen.dart';
 import '../screens/executive_boss_battle_screen.dart';
+import '../screens/focus_garden_screen.dart';
 import '../screens/focus_timer_screen.dart';
 import '../screens/habit_story_builder_screen.dart';
 import '../screens/home_screen.dart';
@@ -66,6 +68,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ExecutiveBossBattleScreen());
       case AppRoutes.collectibles:
         return MaterialPageRoute(builder: (_) => const CollectibleGalleryScreen());
+      case AppRoutes.focusGarden:
+        return MaterialPageRoute(builder: (_) => const FocusGardenScreen());
+      case AppRoutes.aiSparkLab:
+        return MaterialPageRoute(builder: (_) => const AiSparkLabScreen());
       default:
         return MaterialPageRoute(
           builder: (context) {

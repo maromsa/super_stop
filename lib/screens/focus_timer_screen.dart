@@ -8,11 +8,13 @@ import '../providers/ambient_mix_provider.dart';
 import '../providers/coin_provider.dart';
 import '../providers/community_challenge_provider.dart';
 import '../providers/daily_goals_provider.dart';
+import '../providers/focus_garden_provider.dart';
 import '../providers/focus_timer_controller.dart';
 import '../providers/mini_game_provider.dart';
 import '../providers/mystery_quest_provider.dart';
 import '../providers/virtual_companion_provider.dart';
 import '../services/achievement_service.dart';
+import '../utils/focus_garden_strings.dart';
 import '../widgets/achievement_popup.dart';
 import '../widgets/ambient_mix_editor.dart';
 
@@ -122,6 +124,7 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
     final communityProvider = context.read<CommunityChallengeProvider>();
     final questProvider = context.read<MysteryQuestProvider>();
     final companion = context.read<VirtualCompanionProvider>();
+    final gardenProvider = context.read<FocusGardenProvider>();
 
     if (controller.focusRewardCoins > 0) {
       coinProvider.addCoins(controller.focusRewardCoins);
@@ -131,9 +134,11 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
     communityProvider.registerFocusContribution(minutes: controller.selectedFocusMinutes);
     final completedQuests = questProvider.registerFocusMinutes(controller.selectedFocusMinutes);
     companion.registerQuestCelebration('סשן ריכוז');
+    final gardenUpdate = await gardenProvider.registerFocusSession(controller.selectedFocusMinutes);
 
     if (!mounted) return;
     _handleQuestRewards(completedQuests);
+    _handleGardenUpdate(gardenUpdate, coinProvider);
   }
 
   Widget _buildSetupView(FocusTimerController controller, AppLocalizations l10n) {
@@ -439,6 +444,35 @@ class _FocusTimerContentState extends State<_FocusTimerContent> {
         }
       }
     }
+  }
+
+  void _handleGardenUpdate(FocusGardenUpdate update, CoinProvider coinProvider) {
+    if (!mounted || !update.hasChanges) {
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final messages = <String>[];
+
+    if (update.sunlightEarned > 0) {
+      messages.add(l10n.focusGardenSunlightEarned(update.sunlightEarned));
+    }
+
+    if (update.stageLeveledUp && update.newStageId != null) {
+      final stageName = FocusGardenStrings.stageName(l10n, update.newStageId!);
+      if (update.rewardCoins > 0) {
+        coinProvider.addCoins(update.rewardCoins);
+      }
+      messages.add(l10n.focusGardenStageUnlocked(stageName));
+    }
+
+    if (messages.isEmpty) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(messages.join('\n'))),
+    );
   }
 
   void _openAmbientMixEditor(BuildContext context) {

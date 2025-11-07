@@ -113,6 +113,21 @@ abstract class AppLocalizations {
   /// **'Achievements'**
   String get achievementsButton;
 
+  /// No description provided for @authSignInTitle.
+  String get authSignInTitle;
+
+  /// No description provided for @authSignInSubtitle.
+  String get authSignInSubtitle;
+
+  /// No description provided for @authSignInButton.
+  String get authSignInButton;
+
+  /// No description provided for @authSignOutTooltip.
+  String get authSignOutTooltip;
+
+  /// No description provided for @authSyncInProgress.
+  String get authSyncInProgress;
+
   String get homeInstructionsTooltip;
   String get homeInstructionsTitle;
   String get homeInstructionsImpulseTitle;
@@ -139,9 +154,16 @@ abstract class AppLocalizations {
     String get homeAdventureCalm;
     String get homeAdventureSocial;
     String get homeAdventureMixer;
+    String get homeAdventureAiLab;
     String get homeAdventureStory;
     String get homeAdventureBoss;
     String get homeAdventureCollectibles;
+    String get homeAiLabPreviewTitle;
+    String get homeAiLabPreviewEmpty;
+    String get homeAiLabPreviewDescription;
+    String homeAiLabPreviewEnergy(String label);
+    String get homeAiLabPreviewOpen;
+    String get homeAiLabPreviewLearnMore;
   String get homeMoodSelectorTitle;
   String get homeMoodLockedMessage;
   String get homeMoodActiveBadge;
@@ -158,9 +180,27 @@ abstract class AppLocalizations {
   String get dailySparkFocusBody;
   String get dailySparkBreathTitle;
   String get dailySparkBreathBody;
+    String get aiLabTitle;
+    String get aiLabSubtitle;
+    String get aiLabRefreshTooltip;
+    String aiLabEnergyLabel(String label);
+    String get aiLabFocusSection;
+    String get aiLabFocusDescription;
+    String get aiLabBreakSection;
+    String get aiLabBreakDescription;
+    String get aiLabChallengeSection;
+    String get aiLabChallengeDescription;
+    String get aiLabMissionTitle;
+    String aiLabGeneratedAt(String time);
+    String get aiLabEmptyState;
+    String get aiLabGenerateButton;
+    String get aiLabLoadingLabel;
+    String get aiLabGoButton;
+    String get aiLabRefreshButton;
   String get homeToolBreathing;
-  String get homeToolFocusTimer;
-  String get homeToolProgress;
+    String get homeToolFocusTimer;
+    String get homeToolProgress;
+    String get homeToolFocusGarden;
   String get homeButtonAchievements;
   String get homeButtonSettings;
   String get homeReactionModeTitle;
@@ -172,6 +212,39 @@ abstract class AppLocalizations {
   String get homeStroopModeTitle;
   String get homeStroopModeSprint;
   String get homeStroopModeAccuracy;
+    String get focusGardenTitle;
+    String get focusGardenStageSeed;
+    String get focusGardenStageSprout;
+    String get focusGardenStageBloom;
+    String get focusGardenStageTree;
+    String get focusGardenStageNova;
+    String get focusGardenStageSeedDescription;
+    String get focusGardenStageSproutDescription;
+    String get focusGardenStageBloomDescription;
+    String get focusGardenStageTreeDescription;
+    String get focusGardenStageNovaDescription;
+    String focusGardenProgressLabel(int current, int goal);
+    String focusGardenNextGoal(int sunlight);
+    String get focusGardenMaxStageReached;
+    String get focusGardenSunlightStat;
+    String get focusGardenFocusMinutesStat;
+    String get focusGardenDewStat;
+    String get focusGardenWaterCardTitle;
+    String focusGardenWaterCardSubtitle(int boost);
+    String get focusGardenWaterButton;
+    String focusGardenDailyLimitLabel(int used, int max);
+    String focusGardenCurrentDew(int dew);
+    String focusGardenWaterSuccess(int sunlight);
+    String get focusGardenWaterUnavailable;
+    String focusGardenStageUnlocked(String stage);
+    String focusGardenStageCelebration(int coins);
+    String get focusGardenCelebrateOkay;
+    String focusGardenSunlightEarned(int sunlight);
+    String focusGardenDewEarned(int dew);
+    String get focusGardenTipTitle;
+    String get focusGardenTipFocus;
+    String get focusGardenTipBreath;
+    String get focusGardenTipKindness;
 
   String get focusAppBarTitle;
   String get focusSetupTitle;

@@ -3,6 +3,11 @@
     "playButton": "Play",
     "settingsButton": "Settings",
     "achievementsButton": "Achievements",
+  "authSignInTitle": "Welcome to Super Stop",
+  "authSignInSubtitle": "Connect with your Google account to sync your progress across devices.",
+  "authSignInButton": "Continue with Google",
+  "authSignOutTooltip": "Sign out",
+  "authSyncInProgress": "Syncing your latest progress...",
     "onboardingSkip": "Skip",
     "onboardingWelcomeTitle": "Welcome to Super Stop!",
     "onboardingWelcomeBody": "Train focus, self-control, and emotional balance with games designed for kids with ADHD.",
@@ -48,10 +53,22 @@
   "homeAdventureFocus": "Focus bursts",
   "homeAdventureCalm": "Calm mode",
   "homeAdventureSocial": "Social hunt",
-  "homeAdventureMixer": "Mood music mixer",
+    "homeAdventureMixer": "Mood music mixer",
+    "homeAdventureAiLab": "AI Spark Lab",
   "homeAdventureStory": "Habit comic",
   "homeAdventureBoss": "Executive boss battles",
-  "homeAdventureCollectibles": "Rewards gallery",
+    "homeAdventureCollectibles": "Rewards gallery",
+    "homeAiLabPreviewTitle": "Nova's AI spark",
+    "homeAiLabPreviewEmpty": "Spin up an AI plan to unlock your next focus combo.",
+    "homeAiLabPreviewDescription": "Personalized missions appear here once Nova finishes thinking.",
+    "homeAiLabPreviewEnergy": "{label} energy reading",
+    "@homeAiLabPreviewEnergy": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "homeAiLabPreviewOpen": "Open AI Spark Lab",
+    "homeAiLabPreviewLearnMore": "Learn how the AI helps me",
     "homeMoodSelectorTitle": "Choose your vibe",
     "homeMoodLockedMessage": "Keep playing to unlock this mood!",
     "homeMoodActiveBadge": "Active",
@@ -73,9 +90,37 @@
     "dailySparkFocusBody": "Start a short focus timer and give it your best for 3 minutes.",
     "dailySparkBreathTitle": "Breathing Boost",
     "dailySparkBreathBody": "Take a calm breathing break using the guided exercise.",
+    "aiLabTitle": "AI Spark Lab",
+    "aiLabSubtitle": "Nova's adaptive AI picks missions tuned to your mood, energy, and streak.",
+    "aiLabRefreshTooltip": "Refresh AI plan",
+    "aiLabEnergyLabel": "Energy state: {label}",
+    "@aiLabEnergyLabel": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "aiLabFocusSection": "Focus mission",
+    "aiLabFocusDescription": "Start with this focus path to match your current vibe.",
+    "aiLabBreakSection": "Break remix",
+    "aiLabBreakDescription": "Reset your senses before hopping back into challenges.",
+    "aiLabChallengeSection": "Companion challenge",
+    "aiLabChallengeDescription": "Nova dares you to combine these steps for extra rewards.",
+    "aiLabMissionTitle": "Micro missions for today",
+    "aiLabGeneratedAt": "Generated at {time}",
+    "@aiLabGeneratedAt": {
+        "placeholders": {
+            "time": {}
+        }
+    },
+    "aiLabEmptyState": "Nova is ready to craft a tailored plan. Tap generate to begin.",
+    "aiLabGenerateButton": "Generate plan",
+    "aiLabLoadingLabel": "Thinking...",
+    "aiLabGoButton": "Go",
+    "aiLabRefreshButton": "New idea",
     "homeToolBreathing": "Breathing Exercise",
     "homeToolFocusTimer": "Focus Timer",
     "homeToolProgress": "Progress Dashboard",
+    "homeToolFocusGarden": "Focus Garden",
     "homeButtonAchievements": "Achievements",
     "homeButtonSettings": "Settings",
     "homeReactionModeTitle": "Choose game mode",
@@ -189,5 +234,90 @@
             "average": {}
         }
     },
+    "focusGardenTitle": "Nova's Focus Garden",
+    "focusGardenStageSeed": "Star Seed",
+    "focusGardenStageSprout": "Glow Sprout",
+    "focusGardenStageBloom": "Radiant Bloom",
+    "focusGardenStageTree": "Guardian Grove",
+    "focusGardenStageNova": "Nova Canopy",
+    "focusGardenStageSeedDescription": "Your journey begins with a curious seed soaking up every spark of focus.",
+    "focusGardenStageSproutDescription": "Tiny leaves appear when you show up consistently—keep the sunlight coming!",
+    "focusGardenStageBloomDescription": "Colorful flowers burst open from your calm breathing and mindful wins.",
+    "focusGardenStageTreeDescription": "A sturdy tree towers with every challenge you conquer and every habit you grow.",
+    "focusGardenStageNovaDescription": "The garden glows like a constellation—you're helping Nova light up the whole galaxy!",
+    "focusGardenProgressLabel": "{current} / {goal} glow energy gathered",
+    "@focusGardenProgressLabel": {
+      "placeholders": {
+        "current": {},
+        "goal": {}
+      }
+    },
+    "focusGardenNextGoal": "{sunlight} more glow to unlock the next stage",
+    "@focusGardenNextGoal": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenMaxStageReached": "The garden is shining at full power!",
+    "focusGardenSunlightStat": "Glow energy",
+    "focusGardenFocusMinutesStat": "Focus minutes",
+    "focusGardenDewStat": "Nova dew",
+    "focusGardenWaterCardTitle": "Stardust boost",
+    "focusGardenWaterCardSubtitle": "Spend a dew drop to add {boost} glow instantly.",
+    "@focusGardenWaterCardSubtitle": {
+      "placeholders": {
+        "boost": {}
+      }
+    },
+    "focusGardenWaterButton": "Sprinkle stardust",
+    "focusGardenDailyLimitLabel": "Boosts today: {used}/{max}",
+    "@focusGardenDailyLimitLabel": {
+      "placeholders": {
+        "used": {},
+        "max": {}
+      }
+    },
+    "focusGardenCurrentDew": "Dew drops saved: {dew}",
+    "@focusGardenCurrentDew": {
+      "placeholders": {
+        "dew": {}
+      }
+    },
+    "focusGardenWaterSuccess": "Stardust burst! +{sunlight} glow",
+    "@focusGardenWaterSuccess": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenWaterUnavailable": "No dew boosts left for now—try another focus or breathing break.",
+    "focusGardenStageUnlocked": "The garden reached {stage}!",
+    "@focusGardenStageUnlocked": {
+      "placeholders": {
+        "stage": {}
+      }
+    },
+    "focusGardenStageCelebration": "Nova dances with joy! You earned {coins} bonus coins.",
+    "@focusGardenStageCelebration": {
+      "placeholders": {
+        "coins": {}
+      }
+    },
+    "focusGardenCelebrateOkay": "Celebrate!",
+    "focusGardenSunlightEarned": "+{sunlight} glow energy collected",
+    "@focusGardenSunlightEarned": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenDewEarned": "You caught {dew} Nova dew drop!",
+    "@focusGardenDewEarned": {
+      "placeholders": {
+        "dew": {}
+      }
+    },
+    "focusGardenTipTitle": "Today's garden hint",
+    "focusGardenTipFocus": "Try a 5-minute focus blast to shower the garden with sunlight.",
+    "focusGardenTipBreath": "Complete 3 calm breathing cycles to collect a dew drop.",
+    "focusGardenTipKindness": "Send a kind message—Nova loves positive energy in the garden!",
     "routerNotFound": "Route not found"
 }

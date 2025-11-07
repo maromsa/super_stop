@@ -7,6 +7,7 @@ import '../models/calm_power_up.dart';
 import '../models/mood_entry.dart';
 import '../providers/coin_provider.dart';
 import '../providers/community_challenge_provider.dart';
+import '../providers/ai_spark_lab_provider.dart';
 import '../providers/daily_goals_provider.dart';
 import '../providers/level_provider.dart';
 import '../providers/calm_mode_provider.dart';
@@ -17,6 +18,7 @@ import '../providers/mystery_quest_provider.dart';
 import '../providers/virtual_companion_provider.dart';
 import '../router/app_routes.dart';
 import '../services/achievement_service.dart';
+import '../services/firebase_auth_service.dart';
 import '../widgets/achievement_popup.dart';
 import '../widgets/ambient_background.dart';
 import '../widgets/mood_theme_carousel.dart';
@@ -192,40 +194,54 @@ class HomeScreen extends StatelessWidget {
         Theme.of(context).iconTheme.color ??
         Colors.white;
 
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.homeTitle),
-          centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Chip(
-                backgroundColor: Colors.amber.shade100,
-                avatar: const Icon(Icons.monetization_on, color: Colors.amber),
-                label: Consumer<CoinProvider>(
-                  builder: (context, coinProvider, child) {
-                    return Text(
-                      '${coinProvider.coins}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    );
-                  },
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.homeTitle),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Chip(
+              backgroundColor: Colors.amber.shade100,
+              avatar: const Icon(Icons.monetization_on, color: Colors.amber),
+              label: Consumer<CoinProvider>(
+                builder: (context, coinProvider, child) {
+                  return Text(
+                    '${coinProvider.coins}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  );
+                },
               ),
             ),
-            IconButton(
-              icon: Text(
-                '?',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: iconColor,
-                ),
+          ),
+          IconButton(
+            icon: Text(
+              '?',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: iconColor,
               ),
-              tooltip: l10n.homeInstructionsTooltip,
-              onPressed: () => _showInstructionsDialog(context),
             ),
-          ],
-        ),
+            tooltip: l10n.homeInstructionsTooltip,
+            onPressed: () => _showInstructionsDialog(context),
+          ),
+          Consumer<FirebaseAuthService>(
+            builder: (context, authService, _) {
+              if (authService.isAuthBypassed || authService.user == null) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                icon: Icon(Icons.logout, color: iconColor),
+                tooltip: l10n.authSignOutTooltip,
+                onPressed: authService.isInitialSyncInProgress
+                    ? null
+                    : () => authService.signOut(),
+              );
+            },
+          ),
+        ],
+      ),
         body: Stack(
           children: [
             Positioned.fill(
@@ -264,8 +280,10 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       const MoodThemeCarousel(),
                       const SizedBox(height: 16),
-                      _buildCompanionPanel(context, l10n),
-                      const SizedBox(height: 20),
+                        _buildCompanionPanel(context, l10n),
+                        const SizedBox(height: 12),
+                        _buildAiSparkPreview(context, l10n),
+                        const SizedBox(height: 20),
                       Consumer3<DailyGoalsProvider, LevelProvider, CoinProvider>(
                         builder: (context, goalsProvider, levelProvider, coinProvider, child) {
                           return Container(
@@ -538,6 +556,16 @@ class HomeScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: _CompactButton(
+                                      label: l10n.homeToolFocusGarden,
+                                      icon: Icons.local_florist,
+                                      onPressed: () => Navigator.pushNamed(context, AppRoutes.focusGarden),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -676,6 +704,129 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ],
                   ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAiSparkPreview(BuildContext context, AppLocalizations l10n) {
+    return Consumer<AiSparkLabProvider>(
+      builder: (context, aiProvider, _) {
+        final theme = Theme.of(context);
+        final plan = aiProvider.currentPlan;
+        final hasPlan = aiProvider.hasPlan && plan != null;
+        final isGenerating = aiProvider.isGenerating;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.18),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.homeAiLabPreviewTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    hasPlan ? plan.focusCard.title : l10n.homeAiLabPreviewEmpty,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    hasPlan ? plan.focusCard.subtitle : l10n.homeAiLabPreviewDescription,
+                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    maxLines: hasPlan ? 3 : 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  if (hasPlan) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        Chip(
+                          backgroundColor: Colors.black26,
+                          label: Text(
+                            l10n.homeAiLabPreviewEnergy(plan.energyLevelLabel),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        ...plan.focusCard.tags.take(2).map(
+                              (tag) => Chip(
+                                backgroundColor: Colors.black26,
+                                label: Text(tag, style: const TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        FilledButton.icon(
+                          icon: const Icon(Icons.open_in_new),
+                          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.aiSparkLab),
+                          label: Text(l10n.homeAiLabPreviewOpen),
+                        ),
+                        const SizedBox(width: 12),
+                        TextButton.icon(
+                          onPressed: isGenerating ? null : () => aiProvider.regeneratePlan(),
+                          icon: isGenerating
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.autorenew, color: Colors.white),
+                          label: Text(
+                            isGenerating ? l10n.aiLabLoadingLabel : l10n.aiLabRefreshButton,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    FilledButton.icon(
+                      icon: isGenerating
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.bolt),
+                      onPressed: isGenerating ? null : () => aiProvider.regeneratePlan(),
+                      label: Text(isGenerating ? l10n.aiLabLoadingLabel : l10n.aiLabGenerateButton),
+                    ),
+                    const SizedBox(height: 6),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.aiSparkLab),
+                      child: Text(
+                        l10n.homeAiLabPreviewLearnMore,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -890,6 +1041,11 @@ class HomeScreen extends StatelessWidget {
                       label: l10n.homeAdventureMixer,
                       icon: Icons.music_note,
                       route: AppRoutes.moodMixer,
+                    ),
+                    _EngagementButton(
+                      label: l10n.homeAdventureAiLab,
+                      icon: Icons.auto_awesome_motion,
+                      route: AppRoutes.aiSparkLab,
                     ),
                     _EngagementButton(
                       label: l10n.homeAdventureStory,

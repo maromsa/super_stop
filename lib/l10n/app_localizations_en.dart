@@ -18,6 +18,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get achievementsButton => 'Achievements';
 
   @override
+  String get authSignInTitle => 'Welcome to Super Stop';
+
+  @override
+  String get authSignInSubtitle => 'Connect with your Google account to sync your progress across devices.';
+
+  @override
+  String get authSignInButton => 'Continue with Google';
+
+  @override
+  String get authSignOutTooltip => 'Sign out';
+
+  @override
+  String get authSyncInProgress => 'Syncing your latest progress...';
+
+  @override
   String get homeInstructionsTooltip => 'How to play?';
 
   @override
@@ -96,6 +111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeAdventureMixer => 'Mood music mixer';
 
   @override
+  String get homeAdventureAiLab => 'AI Spark Lab';
+
+  @override
   String get homeAdventureStory => 'Habit comic';
 
   @override
@@ -103,6 +121,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeAdventureCollectibles => 'Rewards gallery';
+
+  @override
+  String get homeAiLabPreviewTitle => "Nova's AI spark";
+
+  @override
+  String get homeAiLabPreviewEmpty => 'Spin up an AI plan to unlock your next focus combo.';
+
+  @override
+  String get homeAiLabPreviewDescription => 'Personalized missions appear here once Nova finishes thinking.';
+
+  @override
+  String homeAiLabPreviewEnergy(String label) => '$label energy reading';
+
+  @override
+  String get homeAiLabPreviewOpen => 'Open AI Spark Lab';
+
+  @override
+  String get homeAiLabPreviewLearnMore => 'Learn how the AI helps me';
 
   @override
   String get homeMoodSelectorTitle => 'Choose your vibe';
@@ -153,6 +189,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailySparkBreathBody => 'Take a calm breathing break using the guided exercise.';
 
   @override
+  String get aiLabTitle => 'AI Spark Lab';
+
+  @override
+  String get aiLabSubtitle => "Nova's adaptive AI picks missions tuned to your mood, energy, and streak.";
+
+  @override
+  String get aiLabRefreshTooltip => 'Refresh AI plan';
+
+  @override
+  String aiLabEnergyLabel(String label) => 'Energy state: $label';
+
+  @override
+  String get aiLabFocusSection => 'Focus mission';
+
+  @override
+  String get aiLabFocusDescription => 'Start with this focus path to match your current vibe.';
+
+  @override
+  String get aiLabBreakSection => 'Break remix';
+
+  @override
+  String get aiLabBreakDescription => 'Reset your senses before hopping back into challenges.';
+
+  @override
+  String get aiLabChallengeSection => 'Companion challenge';
+
+  @override
+  String get aiLabChallengeDescription => 'Nova dares you to combine these steps for extra rewards.';
+
+  @override
+  String get aiLabMissionTitle => 'Micro missions for today';
+
+  @override
+  String aiLabGeneratedAt(String time) => 'Generated at $time';
+
+  @override
+  String get aiLabEmptyState => 'Nova is ready to craft a tailored plan. Tap generate to begin.';
+
+  @override
+  String get aiLabGenerateButton => 'Generate plan';
+
+  @override
+  String get aiLabLoadingLabel => 'Thinking...';
+
+  @override
+  String get aiLabGoButton => 'Go';
+
+  @override
+  String get aiLabRefreshButton => 'New idea';
+
+  @override
   String get homeToolBreathing => 'Breathing Exercise';
 
   @override
@@ -160,6 +247,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeToolProgress => 'Progress Dashboard';
+
+  @override
+  String get homeToolFocusGarden => 'Focus Garden';
 
   @override
   String get homeButtonAchievements => 'Achievements';
@@ -193,6 +283,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeStroopModeAccuracy => 'Accuracy (one mistake ends the run)';
+
+  @override
+  String get focusGardenTitle => "Nova's Focus Garden";
+
+  @override
+  String get focusGardenStageSeed => 'Star Seed';
+
+  @override
+  String get focusGardenStageSprout => 'Glow Sprout';
+
+  @override
+  String get focusGardenStageBloom => 'Radiant Bloom';
+
+  @override
+  String get focusGardenStageTree => 'Guardian Grove';
+
+  @override
+  String get focusGardenStageNova => 'Nova Canopy';
+
+  @override
+  String get focusGardenStageSeedDescription =>
+      'Your journey begins with a curious seed soaking up every spark of focus.';
+
+  @override
+  String get focusGardenStageSproutDescription =>
+      'Tiny leaves appear when you show up consistently—keep the sunlight coming!';
+
+  @override
+  String get focusGardenStageBloomDescription =>
+      'Colorful flowers burst open from your calm breathing and mindful wins.';
+
+  @override
+  String get focusGardenStageTreeDescription =>
+      'A sturdy tree towers with every challenge you conquer and every habit you grow.';
+
+  @override
+  String get focusGardenStageNovaDescription =>
+      "The garden glows like a constellation—you're helping Nova light up the whole galaxy!";
+
+  @override
+  String focusGardenProgressLabel(int current, int goal) => '$current / $goal glow energy gathered';
+
+  @override
+  String focusGardenNextGoal(int sunlight) => '$sunlight more glow to unlock the next stage';
+
+  @override
+  String get focusGardenMaxStageReached => 'The garden is shining at full power!';
+
+  @override
+  String get focusGardenSunlightStat => 'Glow energy';
+
+  @override
+  String get focusGardenFocusMinutesStat => 'Focus minutes';
+
+  @override
+  String get focusGardenDewStat => 'Nova dew';
+
+  @override
+  String get focusGardenWaterCardTitle => 'Stardust boost';
+
+  @override
+  String focusGardenWaterCardSubtitle(int boost) => 'Spend a dew drop to add $boost glow instantly.';
+
+  @override
+  String get focusGardenWaterButton => 'Sprinkle stardust';
+
+  @override
+  String focusGardenDailyLimitLabel(int used, int max) => 'Boosts today: $used/$max';
+
+  @override
+  String focusGardenCurrentDew(int dew) => 'Dew drops saved: $dew';
+
+  @override
+  String focusGardenWaterSuccess(int sunlight) => 'Stardust burst! +$sunlight glow';
+
+  @override
+  String get focusGardenWaterUnavailable => 'No dew boosts left for now—try another focus or breathing break.';
+
+  @override
+  String focusGardenStageUnlocked(String stage) => 'The garden reached $stage!';
+
+  @override
+  String focusGardenStageCelebration(int coins) => 'Nova dances with joy! You earned $coins bonus coins.';
+
+  @override
+  String get focusGardenCelebrateOkay => 'Celebrate!';
+
+  @override
+  String focusGardenSunlightEarned(int sunlight) => '+$sunlight glow energy collected';
+
+  @override
+  String focusGardenDewEarned(int dew) => 'You caught $dew Nova dew drop!';
+
+  @override
+  String get focusGardenTipTitle => "Today's garden hint";
+
+  @override
+  String get focusGardenTipFocus => 'Try a 5-minute focus blast to shower the garden with sunlight.';
+
+  @override
+  String get focusGardenTipBreath => 'Complete 3 calm breathing cycles to collect a dew drop.';
+
+  @override
+  String get focusGardenTipKindness => 'Send a kind message—Nova loves positive energy in the garden!';
 
   @override
   String get focusAppBarTitle => 'Focus Timer';
