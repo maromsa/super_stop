@@ -19,4 +19,5 @@ class AppRoutes {
   static const String bossBattles = '/boss-battles';
   static const String collectibles = '/collectibles';
   static const String focusGarden = '/focus-garden';
+  static const String aiSparkLab = '/ai-spark-lab';
 }

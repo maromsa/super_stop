@@ -3,6 +3,7 @@ import 'package:super_stop/l10n/app_localizations.dart';
 
 import '../screens/achievements_screen.dart';
 import '../screens/adaptive_focus_challenge_screen.dart';
+import '../screens/ai_spark_lab_screen.dart';
 import '../screens/breathing_exercise_screen.dart';
 import '../screens/calm_mode_screen.dart';
 import '../screens/collectible_gallery_screen.dart';
@@ -69,6 +70,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const CollectibleGalleryScreen());
       case AppRoutes.focusGarden:
         return MaterialPageRoute(builder: (_) => const FocusGardenScreen());
+      case AppRoutes.aiSparkLab:
+        return MaterialPageRoute(builder: (_) => const AiSparkLabScreen());
       default:
         return MaterialPageRoute(
           builder: (context) {
