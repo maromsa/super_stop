@@ -53,10 +53,22 @@
   "homeAdventureFocus": "פרצי ריכוז",
   "homeAdventureCalm": "מצב רגוע",
   "homeAdventureSocial": "מצוד חברתי",
-  "homeAdventureMixer": "מערבל מוזיקה",
+    "homeAdventureMixer": "מערבל מוזיקה",
+    "homeAdventureAiLab": "מעבדת ה-AI",
   "homeAdventureStory": "קומיקס רצף",
   "homeAdventureBoss": "בוסי ביצוע",
-  "homeAdventureCollectibles": "אוסף פרסים",
+    "homeAdventureCollectibles": "אוסף פרסים",
+    "homeAiLabPreviewTitle": "ניצוץ ה-AI של נובה",
+    "homeAiLabPreviewEmpty": "הפעילו תכנית חכמה כדי לפתוח את השילוב הבא.",
+    "homeAiLabPreviewDescription": "כאן יופיעו משימות מותאמות ברגע שנובה תסיים לחשוב.",
+    "homeAiLabPreviewEnergy": "מצב אנרגיה: {label}",
+    "@homeAiLabPreviewEnergy": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "homeAiLabPreviewOpen": "פתחו את מעבדת ה-AI",
+    "homeAiLabPreviewLearnMore": "מה ה-AI עושה בשבילי",
     "homeMoodSelectorTitle": "בחרו את אווירת האפליקציה",
     "homeMoodLockedMessage": "המשיכו לשחק כדי לפתוח את מצב הרוח הזה!",
     "homeMoodActiveBadge": "פעיל",
@@ -78,6 +90,33 @@
     "dailySparkFocusBody": "התחילו טיימר ריכוז קצר ותנו הכול 3 דקות.",
     "dailySparkBreathTitle": "Boost של נשימה",
     "dailySparkBreathBody": "קחו הפסקת נשימה רגועה בעזרת התרגיל המודרך.",
+    "aiLabTitle": "מעבדת ה-AI",
+    "aiLabSubtitle": "ה-AI של נובה בוחר משימות לפי מצב הרוח, האנרגיה והרצף שלכם.",
+    "aiLabRefreshTooltip": "רענון תכנית AI",
+    "aiLabEnergyLabel": "מצב אנרגיה: {label}",
+    "@aiLabEnergyLabel": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "aiLabFocusSection": "משימת ריכוז",
+    "aiLabFocusDescription": "התחילו במסלול הריכוז שמתאים לאנרגיה של עכשיו.",
+    "aiLabBreakSection": "הפסקת רענון",
+    "aiLabBreakDescription": "השיבו את החושים לפני שחוזרים לאתגר הבא.",
+    "aiLabChallengeSection": "אתגר של נובה",
+    "aiLabChallengeDescription": "נובה מזמינה אתכם לשלב את השלבים האלה לבונוס נוצץ.",
+    "aiLabMissionTitle": "משימות מיקרו להיום",
+    "aiLabGeneratedAt": "נוצר בשעה {time}",
+    "@aiLabGeneratedAt": {
+        "placeholders": {
+            "time": {}
+        }
+    },
+    "aiLabEmptyState": "נובה מחכה ליצור עבורך תכנית מותאמת. לחצו על יצירה כדי להתחיל.",
+    "aiLabGenerateButton": "יצירת תכנית",
+    "aiLabLoadingLabel": "חושבת...",
+    "aiLabGoButton": "קדימה",
+    "aiLabRefreshButton": "רעיון חדש",
     "homeToolBreathing": "תרגיל נשימה",
     "homeToolFocusTimer": "טיימר ריכוז",
     "homeToolProgress": "לוח התקדמות",

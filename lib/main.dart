@@ -8,6 +8,7 @@ import 'package:provider/single_child_widget.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/adaptive_focus_challenge_provider.dart';
+import 'providers/ai_spark_lab_provider.dart';
 import 'providers/boss_battle_provider.dart';
 import 'providers/calm_mode_provider.dart';
 import 'providers/coin_provider.dart';
@@ -115,19 +116,36 @@ List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
     ]);
   }
 
-  providers.add(
-    ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
-      create: (_) => AdaptiveFocusChallengeProvider(),
-      update: (_, journal, provider) {
-        provider ??= AdaptiveFocusChallengeProvider();
-        provider.updateFromMoodJournal(journal);
-        return provider;
-      },
-    ),
-  );
+    providers.add(
+      ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
+        create: (_) => AdaptiveFocusChallengeProvider(),
+        update: (_, journal, provider) {
+          provider ??= AdaptiveFocusChallengeProvider();
+          provider.updateFromMoodJournal(journal);
+          return provider;
+        },
+      ),
+    );
 
-  return providers;
-}
+    providers.add(
+      ChangeNotifierProxyProvider4<MoodJournalProvider, DailyGoalsProvider, AdaptiveFocusChallengeProvider,
+          VirtualCompanionProvider, AiSparkLabProvider>(
+        create: (_) => AiSparkLabProvider(),
+        update: (_, journal, goals, focusChallenge, companion, provider) {
+          provider ??= AiSparkLabProvider();
+          provider.updateSources(
+            moodJournal: journal,
+            dailyGoals: goals,
+            focusChallenge: focusChallenge,
+            companion: companion,
+          );
+          return provider;
+        },
+      ),
+    );
+
+    return providers;
+  }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

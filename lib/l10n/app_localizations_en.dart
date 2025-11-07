@@ -111,6 +111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeAdventureMixer => 'Mood music mixer';
 
   @override
+  String get homeAdventureAiLab => 'AI Spark Lab';
+
+  @override
   String get homeAdventureStory => 'Habit comic';
 
   @override
@@ -118,6 +121,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeAdventureCollectibles => 'Rewards gallery';
+
+  @override
+  String get homeAiLabPreviewTitle => "Nova's AI spark";
+
+  @override
+  String get homeAiLabPreviewEmpty => 'Spin up an AI plan to unlock your next focus combo.';
+
+  @override
+  String get homeAiLabPreviewDescription => 'Personalized missions appear here once Nova finishes thinking.';
+
+  @override
+  String homeAiLabPreviewEnergy(String label) => '$label energy reading';
+
+  @override
+  String get homeAiLabPreviewOpen => 'Open AI Spark Lab';
+
+  @override
+  String get homeAiLabPreviewLearnMore => 'Learn how the AI helps me';
 
   @override
   String get homeMoodSelectorTitle => 'Choose your vibe';
@@ -166,6 +187,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailySparkBreathBody => 'Take a calm breathing break using the guided exercise.';
+
+  @override
+  String get aiLabTitle => 'AI Spark Lab';
+
+  @override
+  String get aiLabSubtitle => "Nova's adaptive AI picks missions tuned to your mood, energy, and streak.";
+
+  @override
+  String get aiLabRefreshTooltip => 'Refresh AI plan';
+
+  @override
+  String aiLabEnergyLabel(String label) => 'Energy state: $label';
+
+  @override
+  String get aiLabFocusSection => 'Focus mission';
+
+  @override
+  String get aiLabFocusDescription => 'Start with this focus path to match your current vibe.';
+
+  @override
+  String get aiLabBreakSection => 'Break remix';
+
+  @override
+  String get aiLabBreakDescription => 'Reset your senses before hopping back into challenges.';
+
+  @override
+  String get aiLabChallengeSection => 'Companion challenge';
+
+  @override
+  String get aiLabChallengeDescription => 'Nova dares you to combine these steps for extra rewards.';
+
+  @override
+  String get aiLabMissionTitle => 'Micro missions for today';
+
+  @override
+  String aiLabGeneratedAt(String time) => 'Generated at $time';
+
+  @override
+  String get aiLabEmptyState => 'Nova is ready to craft a tailored plan. Tap generate to begin.';
+
+  @override
+  String get aiLabGenerateButton => 'Generate plan';
+
+  @override
+  String get aiLabLoadingLabel => 'Thinking...';
+
+  @override
+  String get aiLabGoButton => 'Go';
+
+  @override
+  String get aiLabRefreshButton => 'New idea';
 
   @override
   String get homeToolBreathing => 'Breathing Exercise';

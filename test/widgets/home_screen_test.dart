@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:super_stop/l10n/app_localizations.dart';
 import 'package:super_stop/providers/adaptive_focus_challenge_provider.dart';
 import 'package:super_stop/providers/boss_battle_provider.dart';
+import 'package:super_stop/providers/ai_spark_lab_provider.dart';
 import 'package:super_stop/providers/calm_mode_provider.dart';
 import 'package:super_stop/providers/coin_provider.dart';
 import 'package:super_stop/providers/collectible_provider.dart';
@@ -67,14 +68,28 @@ void main() {
             ChangeNotifierProvider(create: (_) => LevelProvider()),
             ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
             ChangeNotifierProvider(create: (_) => FirebaseAuthService(bypassAuth: true)),
-            ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
-              create: (_) => AdaptiveFocusChallengeProvider(),
-              update: (_, journal, provider) {
-                provider ??= AdaptiveFocusChallengeProvider();
-                provider.updateFromMoodJournal(journal);
-                return provider;
-              },
-            ),
+              ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
+                create: (_) => AdaptiveFocusChallengeProvider(),
+                update: (_, journal, provider) {
+                  provider ??= AdaptiveFocusChallengeProvider();
+                  provider.updateFromMoodJournal(journal);
+                  return provider;
+                },
+              ),
+              ChangeNotifierProxyProvider4<MoodJournalProvider, DailyGoalsProvider,
+                  AdaptiveFocusChallengeProvider, VirtualCompanionProvider, AiSparkLabProvider>(
+                create: (_) => AiSparkLabProvider(),
+                update: (_, journal, goals, focusChallenge, companion, provider) {
+                  provider ??= AiSparkLabProvider();
+                  provider.updateSources(
+                    moodJournal: journal,
+                    dailyGoals: goals,
+                    focusChallenge: focusChallenge,
+                    companion: companion,
+                  );
+                  return provider;
+                },
+              ),
           ],
           child: MaterialApp(
             locale: const Locale('he'),

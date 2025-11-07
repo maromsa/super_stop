@@ -111,6 +111,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get homeAdventureMixer => 'מערבל מוזיקה';
 
   @override
+  String get homeAdventureAiLab => 'מעבדת ה-AI';
+
+  @override
   String get homeAdventureStory => 'קומיקס רצף';
 
   @override
@@ -118,6 +121,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get homeAdventureCollectibles => 'אוסף פרסים';
+
+  @override
+  String get homeAiLabPreviewTitle => 'ניצוץ ה-AI של נובה';
+
+  @override
+  String get homeAiLabPreviewEmpty => 'הפעילו תכנית חכמה כדי לפתוח את השילוב הבא.';
+
+  @override
+  String get homeAiLabPreviewDescription => 'כאן יופיעו משימות מותאמות ברגע שנובה תסיים לחשוב.';
+
+  @override
+  String homeAiLabPreviewEnergy(String label) => 'מצב אנרגיה: $label';
+
+  @override
+  String get homeAiLabPreviewOpen => 'פתחו את מעבדת ה-AI';
+
+  @override
+  String get homeAiLabPreviewLearnMore => 'מה ה-AI עושה בשבילי';
 
   @override
   String get homeMoodSelectorTitle => 'בחרו את אווירת האפליקציה';
@@ -166,6 +187,57 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dailySparkBreathBody => 'קחו הפסקת נשימה רגועה בעזרת התרגיל המודרך.';
+
+  @override
+  String get aiLabTitle => 'מעבדת ה-AI';
+
+  @override
+  String get aiLabSubtitle => 'ה-AI של נובה בוחר משימות לפי מצב הרוח, האנרגיה והרצף שלכם.';
+
+  @override
+  String get aiLabRefreshTooltip => 'רענון תכנית AI';
+
+  @override
+  String aiLabEnergyLabel(String label) => 'מצב אנרגיה: $label';
+
+  @override
+  String get aiLabFocusSection => 'משימת ריכוז';
+
+  @override
+  String get aiLabFocusDescription => 'התחילו במסלול הריכוז שמתאים לאנרגיה של עכשיו.';
+
+  @override
+  String get aiLabBreakSection => 'הפסקת רענון';
+
+  @override
+  String get aiLabBreakDescription => 'השיבו את החושים לפני שחוזרים לאתגר הבא.';
+
+  @override
+  String get aiLabChallengeSection => 'אתגר של נובה';
+
+  @override
+  String get aiLabChallengeDescription => 'נובה מזמינה אתכם לשלב את השלבים האלה לבונוס נוצץ.';
+
+  @override
+  String get aiLabMissionTitle => 'משימות מיקרו להיום';
+
+  @override
+  String aiLabGeneratedAt(String time) => 'נוצר בשעה $time';
+
+  @override
+  String get aiLabEmptyState => 'נובה מחכה ליצור עבורך תכנית מותאמת. לחצו על יצירה כדי להתחיל.';
+
+  @override
+  String get aiLabGenerateButton => 'יצירת תכנית';
+
+  @override
+  String get aiLabLoadingLabel => 'חושבת...';
+
+  @override
+  String get aiLabGoButton => 'קדימה';
+
+  @override
+  String get aiLabRefreshButton => 'רעיון חדש';
 
   @override
   String get homeToolBreathing => 'תרגיל נשימה';

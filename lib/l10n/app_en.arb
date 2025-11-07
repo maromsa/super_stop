@@ -53,10 +53,22 @@
   "homeAdventureFocus": "Focus bursts",
   "homeAdventureCalm": "Calm mode",
   "homeAdventureSocial": "Social hunt",
-  "homeAdventureMixer": "Mood music mixer",
+    "homeAdventureMixer": "Mood music mixer",
+    "homeAdventureAiLab": "AI Spark Lab",
   "homeAdventureStory": "Habit comic",
   "homeAdventureBoss": "Executive boss battles",
-  "homeAdventureCollectibles": "Rewards gallery",
+    "homeAdventureCollectibles": "Rewards gallery",
+    "homeAiLabPreviewTitle": "Nova's AI spark",
+    "homeAiLabPreviewEmpty": "Spin up an AI plan to unlock your next focus combo.",
+    "homeAiLabPreviewDescription": "Personalized missions appear here once Nova finishes thinking.",
+    "homeAiLabPreviewEnergy": "{label} energy reading",
+    "@homeAiLabPreviewEnergy": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "homeAiLabPreviewOpen": "Open AI Spark Lab",
+    "homeAiLabPreviewLearnMore": "Learn how the AI helps me",
     "homeMoodSelectorTitle": "Choose your vibe",
     "homeMoodLockedMessage": "Keep playing to unlock this mood!",
     "homeMoodActiveBadge": "Active",
@@ -78,6 +90,33 @@
     "dailySparkFocusBody": "Start a short focus timer and give it your best for 3 minutes.",
     "dailySparkBreathTitle": "Breathing Boost",
     "dailySparkBreathBody": "Take a calm breathing break using the guided exercise.",
+    "aiLabTitle": "AI Spark Lab",
+    "aiLabSubtitle": "Nova's adaptive AI picks missions tuned to your mood, energy, and streak.",
+    "aiLabRefreshTooltip": "Refresh AI plan",
+    "aiLabEnergyLabel": "Energy state: {label}",
+    "@aiLabEnergyLabel": {
+        "placeholders": {
+            "label": {}
+        }
+    },
+    "aiLabFocusSection": "Focus mission",
+    "aiLabFocusDescription": "Start with this focus path to match your current vibe.",
+    "aiLabBreakSection": "Break remix",
+    "aiLabBreakDescription": "Reset your senses before hopping back into challenges.",
+    "aiLabChallengeSection": "Companion challenge",
+    "aiLabChallengeDescription": "Nova dares you to combine these steps for extra rewards.",
+    "aiLabMissionTitle": "Micro missions for today",
+    "aiLabGeneratedAt": "Generated at {time}",
+    "@aiLabGeneratedAt": {
+        "placeholders": {
+            "time": {}
+        }
+    },
+    "aiLabEmptyState": "Nova is ready to craft a tailored plan. Tap generate to begin.",
+    "aiLabGenerateButton": "Generate plan",
+    "aiLabLoadingLabel": "Thinking...",
+    "aiLabGoButton": "Go",
+    "aiLabRefreshButton": "New idea",
     "homeToolBreathing": "Breathing Exercise",
     "homeToolFocusTimer": "Focus Timer",
     "homeToolProgress": "Progress Dashboard",
