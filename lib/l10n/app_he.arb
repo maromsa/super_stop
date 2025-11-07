@@ -81,6 +81,7 @@
     "homeToolBreathing": "תרגיל נשימה",
     "homeToolFocusTimer": "טיימר ריכוז",
     "homeToolProgress": "לוח התקדמות",
+    "homeToolFocusGarden": "גינת הפוקוס",
     "homeButtonAchievements": "הישגים",
     "homeButtonSettings": "הגדרות",
     "homeReactionModeTitle": "בחר מצב משחק",
@@ -194,5 +195,90 @@
             "average": {}
         }
     },
+    "focusGardenTitle": "גינת הפוקוס של נובה",
+    "focusGardenStageSeed": "זרע כוכב",
+    "focusGardenStageSprout": "נבט זוהר",
+    "focusGardenStageBloom": "פריחת אור",
+    "focusGardenStageTree": "עץ השמירה",
+    "focusGardenStageNova": "חופת נובה",
+    "focusGardenStageSeedDescription": "המסע מתחיל עם זרע סקרן שסופג כל שביב ריכוז.",
+    "focusGardenStageSproutDescription": "עלים קטנים מבצבצים כשאתם מגיעים בעקביות—המשיכו להזין באור!",
+    "focusGardenStageBloomDescription": "פרחים צבעוניים פורחים בזכות רגעי הרוגע והניצחונות הממוקדים שלכם.",
+    "focusGardenStageTreeDescription": "עץ יציב מזדקף עם כל אתגר שאתם מנצחים וכל הרגל שאתם מטפחים.",
+    "focusGardenStageNovaDescription": "הגינה קורנת כמו קבוצת כוכבים—אתם עוזרים לנובה להאיר את כל הגלקסיה!",
+    "focusGardenProgressLabel": "{current} מתוך {goal} אנרגיית זוהר",
+    "@focusGardenProgressLabel": {
+      "placeholders": {
+        "current": {},
+        "goal": {}
+      }
+    },
+    "focusGardenNextGoal": "עוד {sunlight} זוהר כדי לפתוח את השלב הבא",
+    "@focusGardenNextGoal": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenMaxStageReached": "הגינה זורחת במלוא העוצמה!",
+    "focusGardenSunlightStat": "אנרגיית זוהר",
+    "focusGardenFocusMinutesStat": "דקות ריכוז",
+    "focusGardenDewStat": "טיפות נובה",
+    "focusGardenWaterCardTitle": "בוסט אבקת כוכבים",
+    "focusGardenWaterCardSubtitle": "השתמשו בטיפת טל כדי להוסיף {boost} זוהר מיד.",
+    "@focusGardenWaterCardSubtitle": {
+      "placeholders": {
+        "boost": {}
+      }
+    },
+    "focusGardenWaterButton": "פזרו אבקת כוכבים",
+    "focusGardenDailyLimitLabel": "בוסטים היום: {used}/{max}",
+    "@focusGardenDailyLimitLabel": {
+      "placeholders": {
+        "used": {},
+        "max": {}
+      }
+    },
+    "focusGardenCurrentDew": "טיפות שנשמרו: {dew}",
+    "@focusGardenCurrentDew": {
+      "placeholders": {
+        "dew": {}
+      }
+    },
+    "focusGardenWaterSuccess": "בזק זוהר! +{sunlight} אנרגיה",
+    "@focusGardenWaterSuccess": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenWaterUnavailable": "אין עוד טיפות זמינות כרגע—נסו עוד סשן ריכוז או נשימה.",
+    "focusGardenStageUnlocked": "הגינה עלתה לשלב {stage}!",
+    "@focusGardenStageUnlocked": {
+      "placeholders": {
+        "stage": {}
+      }
+    },
+    "focusGardenStageCelebration": "נובה קופצת משמחה! קיבלתם {coins} מטבעות בונוס.",
+    "@focusGardenStageCelebration": {
+      "placeholders": {
+        "coins": {}
+      }
+    },
+    "focusGardenCelebrateOkay": "יש!",
+    "focusGardenSunlightEarned": "+{sunlight} אנרגיית זוהר נאספה",
+    "@focusGardenSunlightEarned": {
+      "placeholders": {
+        "sunlight": {}
+      }
+    },
+    "focusGardenDewEarned": "תפסתם {dew} טיפת נובה נוצצת!",
+    "@focusGardenDewEarned": {
+      "placeholders": {
+        "dew": {}
+      }
+    },
+    "focusGardenTipTitle": "טיפ יומי לגינה",
+    "focusGardenTipFocus": "נסו פרץ ריכוז של 5 דקות כדי להציף את הגינה בשמש.",
+    "focusGardenTipBreath": "השלימו 3 מחזורי נשימה רגועים כדי לאסוף טיפת טל.",
+    "focusGardenTipKindness": "שלחו הודעה מעודדת—נובה אוהבת אנרגיה חיובית בגינה!",
     "routerNotFound": "העמוד לא נמצא"
 }

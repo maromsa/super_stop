@@ -60,4 +60,5 @@ class PrefsKeys {
   static const String habitStoryState = 'habit_story_state';
   static const String bossBattleState = 'boss_battle_state';
   static const String moodMusicMixerState = 'mood_music_mixer_state';
+  static const String focusGardenState = 'focus_garden_state';
 }

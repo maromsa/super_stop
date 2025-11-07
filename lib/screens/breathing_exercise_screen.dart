@@ -1,7 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../providers/coin_provider.dart';
 import 'package:provider/provider.dart';
+
+import '../l10n/app_localizations.dart';
+import '../providers/coin_provider.dart';
+import '../providers/focus_garden_provider.dart';
 
 class BreathingExerciseScreen extends StatefulWidget {
   const BreathingExerciseScreen({super.key});
@@ -77,6 +81,20 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen> with 
         // Award coins for completing cycles
         if (_cyclesCompleted > 0 && _cyclesCompleted % 3 == 0) {
           Provider.of<CoinProvider>(context, listen: false).addCoins(2);
+          final garden = Provider.of<FocusGardenProvider>(context, listen: false);
+          unawaited(
+            garden.registerBreathingPractice(cycles: 3).then((update) {
+              if (!mounted || update.dewEarned == 0) {
+                return;
+              }
+              final l10n = AppLocalizations.of(context);
+              if (l10n != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.focusGardenDewEarned(update.dewEarned))),
+                );
+              }
+            }),
+          );
         }
       }
     });
