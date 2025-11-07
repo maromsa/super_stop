@@ -36,20 +36,27 @@ const bool kBypassFirebaseAuth =
     bool.fromEnvironment('BYPASS_FIREBASE_AUTH') || bool.fromEnvironment('FLUTTER_TEST');
 
 Future<void> main() async {
+  await bootstrapApp();
+}
+
+Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!kBypassFirebaseAuth) {
+
+  final bool bypassAuth = bypassAuthOverride ?? kBypassFirebaseAuth;
+
+  if (!bypassAuth) {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
 
   runApp(
     MultiProvider(
-      providers: _buildProviders(),
+      providers: _buildProviders(bypassAuth: bypassAuth),
       child: const MyApp(),
     ),
   );
 }
 
-List<SingleChildWidget> _buildProviders() {
+List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
   final providers = <SingleChildWidget>[
     ChangeNotifierProvider(create: (_) => ThemeProvider()),
     ChangeNotifierProvider(create: (_) => AchievementService()),
@@ -83,7 +90,7 @@ List<SingleChildWidget> _buildProviders() {
     ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
   ];
 
-  if (kBypassFirebaseAuth) {
+  if (bypassAuth) {
     providers.add(
       ChangeNotifierProvider(create: (_) => FirebaseAuthService(bypassAuth: true)),
     );
@@ -148,14 +155,14 @@ class _AppLaunchDecider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    if (kBypassFirebaseAuth) {
-      return _buildJournalDrivenContent(context, l10n);
-    }
-
     return Consumer<FirebaseAuthService>(
       builder: (context, authService, _) {
+        final l10n = AppLocalizations.of(context);
+
+        if (authService.isAuthBypassed) {
+          return _buildJournalDrivenContent(context, l10n);
+        }
+
         if (!authService.hasCompletedInitialAuth || authService.isInitialSyncInProgress) {
           return _LoadingScaffold(message: l10n?.authSyncInProgress);
         }

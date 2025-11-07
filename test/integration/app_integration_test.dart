@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:super_stop/main.dart' as app;
 
 Future<void> _launchAndReachHome(WidgetTester tester) async {
-  app.main();
+  await tester.pumpWidget(const SizedBox());
+  await tester.pumpAndSettle();
+  await app.bootstrapApp(bypassAuthOverride: true);
   await tester.pumpAndSettle(const Duration(seconds: 2));
 
   Finder skipButton = find.text('דלג');
