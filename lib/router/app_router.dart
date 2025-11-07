@@ -8,6 +8,7 @@ import '../screens/calm_mode_screen.dart';
 import '../screens/collectible_gallery_screen.dart';
 import '../screens/daily_quest_screen.dart';
 import '../screens/executive_boss_battle_screen.dart';
+import '../screens/focus_garden_screen.dart';
 import '../screens/focus_timer_screen.dart';
 import '../screens/habit_story_builder_screen.dart';
 import '../screens/home_screen.dart';
@@ -66,6 +67,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ExecutiveBossBattleScreen());
       case AppRoutes.collectibles:
         return MaterialPageRoute(builder: (_) => const CollectibleGalleryScreen());
+      case AppRoutes.focusGarden:
+        return MaterialPageRoute(builder: (_) => const FocusGardenScreen());
       default:
         return MaterialPageRoute(
           builder: (context) {

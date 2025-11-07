@@ -18,4 +18,5 @@ class AppRoutes {
   static const String habitStory = '/habit-story';
   static const String bossBattles = '/boss-battles';
   static const String collectibles = '/collectibles';
+  static const String focusGarden = '/focus-garden';
 }

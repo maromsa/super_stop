@@ -15,6 +15,7 @@ import 'providers/collectible_provider.dart';
 import 'providers/community_challenge_provider.dart';
 import 'providers/daily_goals_provider.dart';
 import 'providers/daily_quest_provider.dart';
+import 'providers/focus_garden_provider.dart';
 import 'providers/habit_story_provider.dart';
 import 'providers/level_provider.dart';
 import 'providers/mood_journal_provider.dart';
@@ -61,6 +62,7 @@ List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
     ChangeNotifierProvider(create: (_) => ThemeProvider()),
     ChangeNotifierProvider(create: (_) => AchievementService()),
     ChangeNotifierProvider(create: (_) => CoinProvider()),
+    ChangeNotifierProvider(create: (_) => FocusGardenProvider()),
     ChangeNotifierProvider(create: (_) => CollectibleProvider()),
     ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
     ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),

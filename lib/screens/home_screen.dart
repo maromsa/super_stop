@@ -553,6 +553,16 @@ class HomeScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: _CompactButton(
+                                      label: l10n.homeToolFocusGarden,
+                                      icon: Icons.local_florist,
+                                      onPressed: () => Navigator.pushNamed(context, AppRoutes.focusGarden),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
