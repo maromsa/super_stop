@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.super_stop">
+    package="com.sabag.super.stop">
 
     <application
         android:label="super_stop"

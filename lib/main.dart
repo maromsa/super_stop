@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/adaptive_focus_challenge_provider.dart';
+import 'providers/auth_provider.dart';
 import 'providers/boss_battle_provider.dart';
 import 'providers/calm_mode_provider.dart';
 import 'providers/coin_provider.dart';
@@ -27,11 +29,15 @@ import 'theme_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   runApp(
     MultiProvider(
       providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider(create: (_) => AchievementService()),
           ChangeNotifierProvider(create: (_) => CoinProvider()),
           ChangeNotifierProvider(create: (_) => CollectibleProvider()),
