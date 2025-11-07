@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/ai_spark_plan.dart';
 import '../models/mood_entry.dart';
+import '../models/focus_burst_plan.dart';
 import '../router/app_routes.dart';
 import 'adaptive_focus_challenge_provider.dart';
 import 'daily_goals_provider.dart';
