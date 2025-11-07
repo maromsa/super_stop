@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1087180529593",
+    "project_id": "super-stop-cdb65",
+    "storage_bucket": "super-stop-cdb65.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1087180529593:android:de1b4f3aae314fcdd12068",
+        "android_client_info": {
+          "package_name": "com.sabag.super.stop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1087180529593-jotc6b276rs14nvhorncg7rogsrv0mm4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLr9V5Rkm1015CQenmuEYQKdFwHQ7NXVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1087180529593-jotc6b276rs14nvhorncg7rogsrv0mm4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1087180529593-4hb7d7cv9ocfc8h9e0vbggls7mqn8cnu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sabag.super.stop"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
