@@ -8,6 +8,7 @@ import 'package:provider/single_child_widget.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/adaptive_focus_challenge_provider.dart';
+import 'providers/auth_provider.dart';
 import 'providers/ai_spark_lab_provider.dart';
 import 'providers/boss_battle_provider.dart';
 import 'providers/calm_mode_provider.dart';
@@ -43,6 +44,9 @@ Future<void> main() async {
 
 Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   final bool bypassAuth = bypassAuthOverride ?? kBypassFirebaseAuth;
 
@@ -52,6 +56,47 @@ Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
 
   runApp(
     MultiProvider(
+      providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => AchievementService()),
+          ChangeNotifierProvider(create: (_) => CoinProvider()),
+          ChangeNotifierProvider(create: (_) => CollectibleProvider()),
+          ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
+          ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
+          ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
+          ChangeNotifierProvider(create: (_) => DailyQuestProvider()),
+          ChangeNotifierProvider(create: (_) => CalmModeProvider()),
+          ChangeNotifierProvider(create: (_) => SocialTreasureProvider()),
+          ChangeNotifierProvider(create: (_) => BossBattleProvider()),
+          ChangeNotifierProvider(create: (_) => MoodMusicMixerProvider()),
+          ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
+            create: (_) => VirtualCompanionProvider(),
+            update: (_, goals, achievements, companion) {
+              companion ??= VirtualCompanionProvider();
+              companion.updateFrom(goals, achievements);
+              return companion;
+            },
+          ),
+          ChangeNotifierProxyProvider2<DailyGoalsProvider, CollectibleProvider, HabitStoryProvider>(
+            create: (_) => HabitStoryProvider(),
+            update: (_, goals, collectibles, story) {
+              story ??= HabitStoryProvider();
+              unawaited(story.updateFromGoals(goals, collectibles: collectibles));
+              return story;
+            },
+          ),
+          ChangeNotifierProvider(create: (_) => LevelProvider()),
+          ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
+          ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
+            create: (_) => AdaptiveFocusChallengeProvider(),
+            update: (_, journal, provider) {
+              provider ??= AdaptiveFocusChallengeProvider();
+              provider.updateFromMoodJournal(journal);
+              return provider;
+            },
+          ),
+        ],
       providers: _buildProviders(bypassAuth: bypassAuth),
       child: const MyApp(),
     ),

@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.super_stop"
+    namespace = "com.sabag.super.stop"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973" // נוספה לפי הדרישה
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.super_stop"
+        applicationId = "com.sabag.super.stop"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
