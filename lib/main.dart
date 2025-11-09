@@ -45,9 +45,6 @@ Future<void> main() async {
 Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
-
   final bool bypassAuth = bypassAuthOverride ?? kBypassFirebaseAuth;
 
   if (!bypassAuth) {
@@ -65,7 +62,6 @@ Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
 List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
   final providers = <SingleChildWidget>[
     ChangeNotifierProvider(create: (_) => ThemeProvider()),
-    ChangeNotifierProvider(create: (_) => AuthProvider()),
     ChangeNotifierProvider(create: (_) => AchievementService()),
     ChangeNotifierProvider(create: (_) => CoinProvider()),
     ChangeNotifierProvider(create: (_) => FocusGardenProvider()),
@@ -97,6 +93,10 @@ List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
     ChangeNotifierProvider(create: (_) => LevelProvider()),
     ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
   ];
+
+  if (!bypassAuth) {
+    providers.insert(1, ChangeNotifierProvider(create: (_) => AuthProvider()));
+  }
 
   if (bypassAuth) {
     providers.add(
