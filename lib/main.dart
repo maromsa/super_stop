@@ -44,7 +44,7 @@ Future<void> main() async {
 
 Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
 
@@ -56,47 +56,6 @@ Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
 
   runApp(
     MultiProvider(
-      providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ChangeNotifierProvider(create: (_) => AchievementService()),
-          ChangeNotifierProvider(create: (_) => CoinProvider()),
-          ChangeNotifierProvider(create: (_) => CollectibleProvider()),
-          ChangeNotifierProvider(create: (_) => CommunityChallengeProvider()),
-          ChangeNotifierProvider(create: (_) => MysteryQuestProvider()),
-          ChangeNotifierProvider(create: (_) => DailyGoalsProvider()),
-          ChangeNotifierProvider(create: (_) => DailyQuestProvider()),
-          ChangeNotifierProvider(create: (_) => CalmModeProvider()),
-          ChangeNotifierProvider(create: (_) => SocialTreasureProvider()),
-          ChangeNotifierProvider(create: (_) => BossBattleProvider()),
-          ChangeNotifierProvider(create: (_) => MoodMusicMixerProvider()),
-          ChangeNotifierProxyProvider2<DailyGoalsProvider, AchievementService, VirtualCompanionProvider>(
-            create: (_) => VirtualCompanionProvider(),
-            update: (_, goals, achievements, companion) {
-              companion ??= VirtualCompanionProvider();
-              companion.updateFrom(goals, achievements);
-              return companion;
-            },
-          ),
-          ChangeNotifierProxyProvider2<DailyGoalsProvider, CollectibleProvider, HabitStoryProvider>(
-            create: (_) => HabitStoryProvider(),
-            update: (_, goals, collectibles, story) {
-              story ??= HabitStoryProvider();
-              unawaited(story.updateFromGoals(goals, collectibles: collectibles));
-              return story;
-            },
-          ),
-          ChangeNotifierProvider(create: (_) => LevelProvider()),
-          ChangeNotifierProvider(create: (_) => MoodJournalProvider()),
-          ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
-            create: (_) => AdaptiveFocusChallengeProvider(),
-            update: (_, journal, provider) {
-              provider ??= AdaptiveFocusChallengeProvider();
-              provider.updateFromMoodJournal(journal);
-              return provider;
-            },
-          ),
-        ],
       providers: _buildProviders(bypassAuth: bypassAuth),
       child: const MyApp(),
     ),
@@ -106,6 +65,7 @@ Future<void> bootstrapApp({bool? bypassAuthOverride}) async {
 List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
   final providers = <SingleChildWidget>[
     ChangeNotifierProvider(create: (_) => ThemeProvider()),
+    ChangeNotifierProvider(create: (_) => AuthProvider()),
     ChangeNotifierProvider(create: (_) => AchievementService()),
     ChangeNotifierProvider(create: (_) => CoinProvider()),
     ChangeNotifierProvider(create: (_) => FocusGardenProvider()),
@@ -161,36 +121,36 @@ List<SingleChildWidget> _buildProviders({required bool bypassAuth}) {
     ]);
   }
 
-    providers.add(
-      ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
-        create: (_) => AdaptiveFocusChallengeProvider(),
-        update: (_, journal, provider) {
-          provider ??= AdaptiveFocusChallengeProvider();
-          provider.updateFromMoodJournal(journal);
-          return provider;
-        },
-      ),
-    );
+  providers.add(
+    ChangeNotifierProxyProvider<MoodJournalProvider, AdaptiveFocusChallengeProvider>(
+      create: (_) => AdaptiveFocusChallengeProvider(),
+      update: (_, journal, provider) {
+        provider ??= AdaptiveFocusChallengeProvider();
+        provider.updateFromMoodJournal(journal);
+        return provider;
+      },
+    ),
+  );
 
-    providers.add(
-      ChangeNotifierProxyProvider4<MoodJournalProvider, DailyGoalsProvider, AdaptiveFocusChallengeProvider,
-          VirtualCompanionProvider, AiSparkLabProvider>(
-        create: (_) => AiSparkLabProvider(),
-        update: (_, journal, goals, focusChallenge, companion, provider) {
-          provider ??= AiSparkLabProvider();
-          provider.updateSources(
-            moodJournal: journal,
-            dailyGoals: goals,
-            focusChallenge: focusChallenge,
-            companion: companion,
-          );
-          return provider;
-        },
-      ),
-    );
+  providers.add(
+    ChangeNotifierProxyProvider4<MoodJournalProvider, DailyGoalsProvider, AdaptiveFocusChallengeProvider,
+        VirtualCompanionProvider, AiSparkLabProvider>(
+      create: (_) => AiSparkLabProvider(),
+      update: (_, journal, goals, focusChallenge, companion, provider) {
+        provider ??= AiSparkLabProvider();
+        provider.updateSources(
+          moodJournal: journal,
+          dailyGoals: goals,
+          focusChallenge: focusChallenge,
+          companion: companion,
+        );
+        return provider;
+      },
+    ),
+  );
 
-    return providers;
-  }
+  return providers;
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
