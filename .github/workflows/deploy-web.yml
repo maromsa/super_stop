@@ -32,7 +32,13 @@ jobs:
         run: flutter pub get
 
       - name: Build web release
-        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+        # Note: base-href must match the GitHub Pages URL path
+        # If repository is named 'english_learning_app', URL will be: https://maromsa.github.io/english_learning_app/
+        # If repository has a different name, update this base-href accordingly
+        run: flutter build web --release --base-href "/english_learning_app/"
+
+      - name: Create .nojekyll file
+        run: touch build/web/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
